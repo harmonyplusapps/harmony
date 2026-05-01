@@ -1,4 +1,5 @@
 import json
+from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
 from apps.fitness.models import FitnessPlan, WorkoutLog
 from apps.health.models import HealthPlan, NutritionLog, WellnessLog
@@ -66,7 +67,6 @@ async def adapt_plans_for_user(user: User) -> None:
     )
 
     data = json.loads(message.content[0].text)
-    from asgiref.sync import sync_to_async
     new_fitness, new_health = await sync_to_async(parse_and_save_plans)(user, data)
 
     await PlanAdaptationLog.objects.acreate(
@@ -88,5 +88,4 @@ async def adapt_plans_for_user(user: User) -> None:
 
 
 async def _async_build_context(user, fitness_plan, health_plan):
-    from asgiref.sync import sync_to_async
     return await sync_to_async(_build_adaptation_context)(user, fitness_plan, health_plan)

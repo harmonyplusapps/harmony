@@ -23,10 +23,10 @@ def build_daily_context(user: User, today: date) -> dict:
             log = WorkoutLog.objects.filter(user=user, workout_day=planned_workout).first()
             if log:
                 actual_workout = log
-                if log.completion_percentage >= 90:
-                    fitness_status = "on_track"
-                elif log.completion_percentage > 110:
+                if log.completion_percentage > 110:
                     fitness_status = "overshooting"
+                elif log.completion_percentage >= 90:
+                    fitness_status = "on_track"
                 else:
                     fitness_status = "underachieving"
 
@@ -40,10 +40,10 @@ def build_daily_context(user: User, today: date) -> dict:
     )
     health_status = "no_data"
     if health_plan and nutrition_logs:
-        if total_logged_calories >= health_plan.daily_calorie_target * 0.9:
-            health_status = "on_track"
-        elif total_logged_calories > health_plan.daily_calorie_target * 1.1:
+        if total_logged_calories > health_plan.daily_calorie_target * 1.1:
             health_status = "overshooting"
+        elif total_logged_calories >= health_plan.daily_calorie_target * 0.9:
+            health_status = "on_track"
         else:
             health_status = "underachieving"
 
