@@ -1,0 +1,27 @@
+{
+  "count": 2,
+  "results": [
+    {
+      "id": 1,
+      "uuid": "abc-123",
+      "name": "Bench Press",
+      "category": {"id": 11, "name": "Chest"},
+      "muscles": [{"id": 4, "name_en": "Pectoralis major"}],
+      "muscles_secondary": [{"id": 2, "name_en": "Anterior deltoid"}],
+      "equipment": [{"id": 1, "name": "Barbell"}],
+      "description": "<p>Lie on bench and press barbell up.</p>",
+      "images": [{"image": "https://wger.de/media/exercise-images/1/bench-press.gif"}]
+    },
+    {
+      "id": 2,
+      "uuid": "def-456",
+      "name": "Squat",
+      "category": {"id": 10, "name": "Legs"},
+      "muscles": [{"id": 10, "name_en": "Quadriceps"}],
+      "muscles_secondary": [{"id": 8, "name_en": "Glutes"}],
+      "equipment": [{"id": 1, "name": "Barbell"}],
+      "description": "<p>Stand with barbell on back, squat down.</p>",
+      "images": []
+    }
+  ]
+}
