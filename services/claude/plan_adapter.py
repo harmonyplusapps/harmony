@@ -66,7 +66,10 @@ async def adapt_plans_for_user(user: User) -> None:
         messages=[{"role": "user", "content": context}],
     )
 
-    data = json.loads(message.content[0].text)
+    try:
+        data = json.loads(message.content[0].text)
+    except (json.JSONDecodeError, IndexError) as e:
+        raise ValueError(f"Claude returned invalid JSON: {e}") from e
     new_fitness, new_health = await sync_to_async(parse_and_save_plans)(user, data)
 
     await PlanAdaptationLog.objects.acreate(

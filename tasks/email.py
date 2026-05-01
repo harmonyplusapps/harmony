@@ -6,8 +6,8 @@ from apps.notifications.models import EmailLog
 from services.claude.email_summarizer import generate_email_summary
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=300)
-def send_daily_emails(self):
+@shared_task
+def send_daily_emails():
     today = date.today()
     users = User.objects.filter(is_active=True).select_related("profile")
 

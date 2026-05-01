@@ -140,3 +140,6 @@ class ExerciseLog(models.Model):
     skip_reason = models.TextField(blank=True)
     notes = models.TextField(blank=True)
     additional_comments = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ["workout_log", "workout_exercise"]

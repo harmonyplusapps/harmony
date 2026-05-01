@@ -1,5 +1,4 @@
 import json
-import anthropic
 from django.contrib.auth.models import User
 from apps.accounts.models import UserProfile
 from services.claude.client import get_client
@@ -51,7 +50,10 @@ async def generate_initial_plans(user: User) -> tuple:
     )
 
     raw = message.content[0].text
-    data = json.loads(raw)
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, IndexError) as e:
+        raise ValueError(f"Claude returned invalid JSON: {e}") from e
     return await _async_parse(user, data)
 
 
