@@ -1,8 +1,6 @@
 import pytest
 from django.urls import reverse
 from django.contrib.auth.models import User
-from apps.accounts.models import UserProfile
-
 
 @pytest.mark.django_db
 def test_register_creates_user(client):
@@ -16,6 +14,7 @@ def test_register_creates_user(client):
     })
     assert resp.status_code == 302
     assert User.objects.filter(username="newuser").exists()
+    assert reverse("onboarding_step1") in resp["Location"]
 
 
 @pytest.mark.django_db
@@ -37,6 +36,7 @@ def test_login_valid_credentials(client, base_user):
         "password": "testpass123",
     })
     assert resp.status_code == 302
+    assert reverse("dashboard") in resp["Location"]
 
 
 @pytest.mark.django_db
@@ -62,3 +62,10 @@ def test_dashboard_loads_if_onboarded(client, base_user, complete_profile):
     client.login(username="base", password="testpass123")
     resp = client.get(reverse("dashboard"))
     assert resp.status_code == 200
+
+
+@pytest.mark.django_db
+def test_dashboard_redirects_unauthenticated(client):
+    resp = client.get(reverse("dashboard"))
+    assert resp.status_code == 302
+    assert "login" in resp["Location"]
