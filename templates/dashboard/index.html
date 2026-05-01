@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Harmony{% endblock %}
+{% block content %}
+<h1>Welcome, {{ request.user.first_name|default:request.user.username }}!</h1>
+
+<section>
+  <h2>Today's Workout</h2>
+  {% include "dashboard/partials/workout_today.html" %}
+</section>
+
+<section>
+  <h2>Today's Meals</h2>
+  {% include "dashboard/partials/meal_today.html" %}
+</section>
+
+<section>
+  <h2>Wellness Check-in</h2>
+  {% include "dashboard/partials/wellness_checkin.html" %}
+</section>
+
+<section>
+  <h2>Weekly Progress</h2>
+  <p>{{ completed_days }} / {{ planned_days }} workout days completed this week.</p>
+</section>
+{% endblock %}

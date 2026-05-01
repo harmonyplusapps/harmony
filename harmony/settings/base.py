@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "apps.health",
     "apps.plans",
     "apps.notifications",
+    "apps.dashboard",
 ]
 
 MIDDLEWARE = [

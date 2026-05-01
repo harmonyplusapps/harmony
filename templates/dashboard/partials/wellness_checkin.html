@@ -1,0 +1,12 @@
+<form hx-post="{% url 'log_wellness' %}" hx-swap="none">
+  {% csrf_token %}
+  <label>Sleep hours <input type="number" name="sleep_hours" step="0.5" value="{{ wellness_log.sleep_hours }}" min="0" max="24"></label>
+  <label>Sleep quality (1-5) <input type="number" name="sleep_quality" value="{{ wellness_log.sleep_quality }}" min="1" max="5"></label>
+  <label>Mood (1-10) <input type="number" name="mood_score" value="{{ wellness_log.mood_score }}" min="1" max="10"></label>
+  <label>Stress (1-10) <input type="number" name="stress_level" value="{{ wellness_log.stress_level }}" min="1" max="10"></label>
+  <label>Energy (1-10) <input type="number" name="energy_level" value="{{ wellness_log.energy_level }}" min="1" max="10"></label>
+  <label>Mindfulness done? <input type="checkbox" name="mindfulness_done" value="true" {% if wellness_log.mindfulness_done %}checked{% endif %}></label>
+  <label>Duration (min) <input type="number" name="mindfulness_duration_minutes" value="{{ wellness_log.mindfulness_duration_minutes }}"></label>
+  <label>Additional notes <textarea name="additional_comments">{{ wellness_log.additional_comments }}</textarea></label>
+  <button type="submit">Save Wellness Log</button>
+</form>

@@ -12,11 +12,6 @@ from services.claude.plan_generator import generate_initial_plans
 logger = logging.getLogger(__name__)
 
 
-@login_required
-def dashboard_placeholder(request):
-    return render(request, "accounts/dashboard_placeholder.html", {})
-
-
 def register_view(request):
     if request.method == "POST":
         form = RegisterForm(request.POST)

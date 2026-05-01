@@ -1,0 +1,16 @@
+{% comment %}Rendered per-exercise within workout_today; included via hx-swap for live row updates.{% endcomment %}
+<tr id="exercise-row-{{ exercise.id }}">
+  <td><strong>{{ exercise.display_name }}</strong> ({{ exercise.section }})</td>
+  <td>
+    {% if exercise.sets %}{{ exercise.sets }} × {{ exercise.reps }}{% endif %}
+    {% if exercise.duration_seconds %}{{ exercise.duration_seconds }}s{% endif %}
+  </td>
+  <td>{{ exercise.notes }}</td>
+  <td>
+    {% if log %}
+      {% if log.skipped %}<em>Skipped</em>{% else %}{{ log.sets_completed }} sets done{% endif %}
+    {% else %}
+      —
+    {% endif %}
+  </td>
+</tr>

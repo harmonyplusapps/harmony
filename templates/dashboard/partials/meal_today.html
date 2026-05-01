@@ -1,0 +1,24 @@
+{% if today_meals %}
+  {% for meal in today_meals %}
+  <div>
+    <h3>{{ meal.get_meal_type_display }}: {{ meal.meal_name }}</h3>
+    <p>{{ meal.description }}</p>
+    <p>{{ meal.calories }} kcal | P: {{ meal.protein_g }}g | C: {{ meal.carbs_g }}g | F: {{ meal.fat_g }}g</p>
+    <p><em>{{ meal.preparation_notes }}</em></p>
+  </div>
+  {% endfor %}
+  <div>
+    <h3>Log What You Actually Ate</h3>
+    {% for meal_type, label in meal_types %}
+    <form hx-post="{% url 'log_nutrition' %}" hx-swap="none">
+      {% csrf_token %}
+      <input type="hidden" name="meal_type" value="{{ meal_type }}">
+      <label>{{ label }}: <input type="text" name="description" placeholder="What did you eat?"></label>
+      <label>Calories <input type="number" name="estimated_calories"></label>
+      <button type="submit">Save</button>
+    </form>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>No meal plan loaded yet.</p>
+{% endif %}

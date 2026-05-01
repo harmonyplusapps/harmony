@@ -1,0 +1,42 @@
+{% if today_workout %}
+  <p><strong>{{ today_workout.day_type|title }}</strong> — {{ today_workout.focus_area|title }} ({{ today_workout.estimated_duration_minutes }} min)</p>
+  <p>{{ today_workout.notes }}</p>
+
+  {% if today_workout.running_strategy %}
+  <div>
+    <h3>Running: {{ today_workout.running_strategy.run_type|title }}</h3>
+    <p>{{ today_workout.running_strategy.total_distance_km }}km @ {{ today_workout.running_strategy.pace_target }}</p>
+    <p>{{ today_workout.running_strategy.notes }}</p>
+  </div>
+  {% endif %}
+
+  <h3>Exercises</h3>
+  {% for exercise in today_workout.exercises.all %}
+  <div hx-post="{% url 'log_exercise' exercise.id %}" hx-trigger="change" hx-swap="none">
+    {% csrf_token %}
+    <strong>{{ exercise.display_name }}</strong> ({{ exercise.section }})
+    {% if exercise.exercise_cache.gif_url %}
+    <img src="{{ exercise.exercise_cache.gif_url }}" alt="{{ exercise.display_name }}" width="100">
+    {% endif %}
+    {% if exercise.sets %}<span>{{ exercise.sets }} sets × {{ exercise.reps }} reps</span>{% endif %}
+    {% if exercise.duration_seconds %}<span>{{ exercise.duration_seconds }}s</span>{% endif %}
+    <p>{{ exercise.notes }}</p>
+    <label>Skip? <input type="checkbox" name="skipped" value="true"></label>
+    <input type="hidden" name="sets_completed" value="0">
+    <input type="hidden" name="reps_completed" value="[]">
+    <input type="hidden" name="weight_kg" value="[]">
+  </div>
+  {% endfor %}
+
+  <form hx-post="{% url 'log_workout_day' today_workout.id %}" hx-swap="outerHTML">
+    {% csrf_token %}
+    <label>Completed? <input type="checkbox" name="completed" value="true" {% if workout_log.completed %}checked{% endif %}></label>
+    <label>% Done <input type="number" name="completion_percentage" value="{{ workout_log.completion_percentage }}" min="0" max="100"></label>
+    <label>Effort (1-10) <input type="number" name="perceived_exertion" value="{{ workout_log.perceived_exertion }}" min="1" max="10"></label>
+    <label>Actual duration (min) <input type="number" name="actual_duration_minutes" value="{{ workout_log.actual_duration_minutes }}"></label>
+    <label>Notes <textarea name="additional_comments">{{ workout_log.additional_comments }}</textarea></label>
+    <button type="submit">Save Workout Log</button>
+  </form>
+{% else %}
+  <p>Rest day — enjoy the recovery!</p>
+{% endif %}
