@@ -1,0 +1,115 @@
+{
+  "fitness_plan": {
+    "week_number": 1,
+    "start_date": "2026-04-29",
+    "end_date": "2026-05-05",
+    "total_workout_days": 3,
+    "total_running_days": 2,
+    "weekly_goal_summary": "Build base fitness with 3 strength sessions and 2 easy runs.",
+    "claude_reasoning": "Beginner level with weight loss goal — moderate volume, full body focus.",
+    "workout_days": [
+      {
+        "date": "2026-04-29",
+        "day_of_week": "Monday",
+        "day_type": "strength",
+        "focus_area": "full_body",
+        "estimated_duration_minutes": 50,
+        "warmup_description": "5 min light jog or jumping jacks",
+        "cooldown_description": "5 min stretching",
+        "notes": "Focus on form over weight today.",
+        "exercises": [
+          {
+            "exercise_name": "Squat",
+            "section": "main",
+            "sets": 3,
+            "reps": 12,
+            "duration_seconds": null,
+            "distance_km": null,
+            "rest_seconds": 90,
+            "intensity": "moderate",
+            "notes": "Keep chest up, knees over toes."
+          },
+          {
+            "exercise_name": "Bench Press",
+            "section": "main",
+            "sets": 3,
+            "reps": 10,
+            "duration_seconds": null,
+            "distance_km": null,
+            "rest_seconds": 90,
+            "intensity": "moderate",
+            "notes": "Elbows at 45 degrees."
+          }
+        ],
+        "running_strategy": null
+      },
+      {
+        "date": "2026-05-01",
+        "day_of_week": "Thursday",
+        "day_type": "running",
+        "focus_area": "cardio",
+        "estimated_duration_minutes": 40,
+        "warmup_description": "5 min walk",
+        "cooldown_description": "5 min walk + calf stretch",
+        "notes": "Keep conversational pace — you should be able to speak in sentences.",
+        "exercises": [
+          {
+            "exercise_name": "High Knees",
+            "section": "pre_run",
+            "sets": null,
+            "reps": null,
+            "duration_seconds": 60,
+            "distance_km": null,
+            "rest_seconds": 30,
+            "intensity": "low",
+            "notes": "Loosen up the hips."
+          }
+        ],
+        "running_strategy": {
+          "run_type": "easy",
+          "total_distance_km": 4.0,
+          "total_duration_minutes": 30,
+          "pace_target": "6:30-7:00 min/km",
+          "structure": [
+            {"phase": "warmup_walk", "duration_min": 5, "distance_km": null},
+            {"phase": "easy_run", "duration_min": 25, "distance_km": 4.0},
+            {"phase": "cooldown_walk", "duration_min": 5, "distance_km": null}
+          ],
+          "heart_rate_zone": "zone2",
+          "notes": "If breathing gets hard, slow down."
+        }
+      }
+    ]
+  },
+  "health_plan": {
+    "week_number": 1,
+    "start_date": "2026-04-29",
+    "end_date": "2026-05-05",
+    "daily_calorie_target": 1800,
+    "daily_protein_g": 140,
+    "daily_carbs_g": 180,
+    "daily_fat_g": 60,
+    "daily_fiber_g": 30,
+    "daily_water_ml": 2500,
+    "claude_reasoning": "Moderate caloric deficit for weight loss, high protein to preserve muscle.",
+    "meal_plans": [
+      {
+        "day_of_week": "Monday",
+        "meals": [
+          {
+            "meal_type": "breakfast",
+            "meal_name": "Greek Yogurt Parfait",
+            "description": "High-protein breakfast to fuel morning workout.",
+            "calories": 380,
+            "protein_g": 28.0,
+            "carbs_g": 45.0,
+            "fat_g": 8.0,
+            "fiber_g": 5.0,
+            "ingredients": ["200g Greek yogurt", "50g granola", "100g mixed berries"],
+            "preparation_notes": "Layer yogurt, granola, berries in a bowl."
+          }
+        ]
+      }
+    ]
+  }
+}
