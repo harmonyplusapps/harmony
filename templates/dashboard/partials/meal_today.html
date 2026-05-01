@@ -7,23 +7,24 @@
     <p><em>{{ meal.preparation_notes }}</em></p>
   </div>
   {% endfor %}
-  <div>
-    <h3>Log What You Actually Ate</h3>
-    {% for meal_type, label in meal_types %}
-    <form hx-post="{% url 'log_nutrition' %}" hx-swap="none">
-      {% csrf_token %}
-      <input type="hidden" name="meal_type" value="{{ meal_type }}">
-      <label>{{ label }}: <input type="text" name="description" placeholder="What did you eat?"></label>
-      <label>Calories <input type="number" name="estimated_calories"></label>
-      <label>Protein (g) <input type="number" step="0.1" name="estimated_protein_g"></label>
-      <label>Carbs (g) <input type="number" step="0.1" name="estimated_carbs_g"></label>
-      <label>Fat (g) <input type="number" step="0.1" name="estimated_fat_g"></label>
-      <label>Water (ml) <input type="number" name="water_ml"></label>
-      <label>Notes <input type="text" name="additional_comments"></label>
-      <button type="submit">Save</button>
-    </form>
-    {% endfor %}
-  </div>
 {% else %}
   <p>No meal plan loaded yet.</p>
 {% endif %}
+
+<div>
+  <h3>Log What You Actually Ate</h3>
+  {% for meal_type, label in meal_types %}
+  <form hx-post="{% url 'log_nutrition' %}" hx-swap="none">
+    {% csrf_token %}
+    <input type="hidden" name="meal_type" value="{{ meal_type }}">
+    <label>{{ label }}: <input type="text" name="description" placeholder="What did you eat?"></label>
+    <label>Calories <input type="number" name="estimated_calories"></label>
+    <label>Protein (g) <input type="number" step="0.1" name="estimated_protein_g"></label>
+    <label>Carbs (g) <input type="number" step="0.1" name="estimated_carbs_g"></label>
+    <label>Fat (g) <input type="number" step="0.1" name="estimated_fat_g"></label>
+    <label>Water (ml) <input type="number" name="water_ml"></label>
+    <label>Notes <input type="text" name="additional_comments"></label>
+    <button type="submit">Save</button>
+  </form>
+  {% endfor %}
+</div>

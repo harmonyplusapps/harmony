@@ -6,6 +6,14 @@ from .models import WorkoutLog, ExerciseLog, WorkoutExercise, WorkoutDay
 import json
 
 
+def _parse_json_list(raw, default=None):
+    try:
+        result = json.loads(raw or "[]")
+        return result if isinstance(result, list) else (default or [])
+    except (json.JSONDecodeError, TypeError):
+        return default or []
+
+
 @login_required
 @require_POST
 def log_workout_day(request, workout_day_id):
@@ -32,8 +40,8 @@ def log_exercise(request, exercise_id):
         workout_log=workout_log, workout_exercise=exercise
     )
     log.sets_completed = int(request.POST.get("sets_completed", 0))
-    log.reps_completed = json.loads(request.POST.get("reps_completed", "[]"))
-    log.weight_kg = json.loads(request.POST.get("weight_kg", "[]"))
+    log.reps_completed = _parse_json_list(request.POST.get("reps_completed"))
+    log.weight_kg = _parse_json_list(request.POST.get("weight_kg"))
     log.skipped = request.POST.get("skipped") == "true"
     log.skip_reason = request.POST.get("skip_reason", "")
     log.additional_comments = request.POST.get("additional_comments", "")

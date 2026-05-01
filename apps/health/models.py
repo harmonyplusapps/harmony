@@ -76,7 +76,7 @@ class WellnessLog(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wellness_logs")
-    date = models.DateField(unique=True)
+    date = models.DateField()
     sleep_hours = models.DecimalField(max_digits=4, decimal_places=1)
     sleep_quality = models.IntegerField()
     bedtime = models.TimeField(null=True, blank=True)
@@ -90,3 +90,6 @@ class WellnessLog(models.Model):
     notes = models.TextField(blank=True)
     additional_comments = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["user", "date"]

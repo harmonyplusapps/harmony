@@ -2,7 +2,7 @@ from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from apps.fitness.models import FitnessPlan, WorkoutDay, WorkoutLog
-from apps.health.models import HealthPlan, MealPlan, NutritionLog, WellnessLog
+from apps.health.models import HealthPlan, MealPlan, WellnessLog
 
 
 @login_required
@@ -50,6 +50,8 @@ def dashboard(request):
         completed_days = WorkoutLog.objects.filter(
             user=request.user,
             workout_day__fitness_plan=fitness_plan,
+            workout_day__date__gte=fitness_plan.start_date,
+            workout_day__date__lte=fitness_plan.end_date,
             completed=True,
         ).count()
 
