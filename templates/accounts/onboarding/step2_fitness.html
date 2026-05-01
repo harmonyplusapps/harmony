@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Step 2: Fitness — Harmony{% endblock %}
+{% block content %}
+<h1>Step {{ step }} of 3: Your Fitness Routine</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Next &rarr;</button>
+</form>
+{% endblock %}

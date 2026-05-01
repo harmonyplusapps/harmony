@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Step 3: Health — Harmony{% endblock %}
+{% block content %}
+<h1>Step {{ step }} of 3: Diet &amp; Health</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Generate My Plan &rarr;</button>
+</form>
+{% endblock %}
