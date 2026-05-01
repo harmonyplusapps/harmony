@@ -32,6 +32,16 @@ class OnboardingStep2Form(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
     )
 
+    available_equipment = forms.CharField(
+        required=False,
+        help_text="Comma-separated, e.g. dumbbells, resistance bands",
+        widget=forms.TextInput,
+    )
+
+    def clean_available_equipment(self):
+        val = self.cleaned_data.get("available_equipment", "")
+        return [v.strip() for v in val.split(",") if v.strip()]
+
     class Meta:
         model = UserProfile
         fields = ["workout_days_per_week", "preferred_workout_days", "running_days_per_week",
@@ -45,6 +55,16 @@ class OnboardingStep2Form(forms.ModelForm):
 
 
 class OnboardingStep3Form(forms.ModelForm):
+    food_allergies = forms.CharField(
+        required=False,
+        help_text="Comma-separated, e.g. gluten, dairy",
+        widget=forms.TextInput,
+    )
+
+    def clean_food_allergies(self):
+        val = self.cleaned_data.get("food_allergies", "")
+        return [v.strip() for v in val.split(",") if v.strip()]
+
     class Meta:
         model = UserProfile
         fields = ["diet_type", "food_allergies", "food_preferences", "notification_email"]

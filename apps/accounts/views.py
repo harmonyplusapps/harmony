@@ -1,12 +1,20 @@
+import logging
+
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from .forms import RegisterForm, OnboardingStep1Form, OnboardingStep2Form, OnboardingStep3Form
 from .models import UserProfile
 import asyncio
 from services.claude.plan_generator import generate_initial_plans
+
+logger = logging.getLogger(__name__)
+
+
+@login_required
+def dashboard_placeholder(request):
+    return render(request, "accounts/dashboard_placeholder.html", {})
 
 
 def register_view(request):
@@ -67,7 +75,7 @@ def onboarding_step1(request):
 
 @login_required
 def onboarding_step2(request):
-    profile = UserProfile.objects.get(user=request.user)
+    profile = get_object_or_404(UserProfile, user=request.user)
     if request.method == "POST":
         form = OnboardingStep2Form(request.POST, instance=profile)
         if form.is_valid():
@@ -82,7 +90,7 @@ def onboarding_step2(request):
 
 @login_required
 def onboarding_step3(request):
-    profile = UserProfile.objects.get(user=request.user)
+    profile = get_object_or_404(UserProfile, user=request.user)
     if request.method == "POST":
         form = OnboardingStep3Form(request.POST, instance=profile)
         if form.is_valid():
@@ -95,7 +103,7 @@ def onboarding_step3(request):
 
 @login_required
 def onboarding_generating(request):
-    profile = UserProfile.objects.get(user=request.user)
+    profile = get_object_or_404(UserProfile, user=request.user)
     if request.method == "POST":
         try:
             asyncio.run(generate_initial_plans(request.user))
@@ -103,6 +111,7 @@ def onboarding_generating(request):
             profile.save()
             return redirect("dashboard")
         except Exception as e:
+            logger.exception("Plan generation failed for user %s", request.user.id)
             return render(request, "accounts/onboarding/generating.html",
-                          {"error": str(e)})
+                          {"error": "Plan generation failed. Please try again."})
     return render(request, "accounts/onboarding/generating.html", {})
