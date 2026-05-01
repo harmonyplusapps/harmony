@@ -7,6 +7,15 @@
   <label>Energy (1-10) <input type="number" name="energy_level" value="{{ wellness_log.energy_level }}" min="1" max="10"></label>
   <label>Mindfulness done? <input type="checkbox" name="mindfulness_done" value="true" {% if wellness_log.mindfulness_done %}checked{% endif %}></label>
   <label>Duration (min) <input type="number" name="mindfulness_duration_minutes" value="{{ wellness_log.mindfulness_duration_minutes }}"></label>
+  <label>Type
+  <select name="mindfulness_type">
+    <option value="">—</option>
+    <option value="meditation" {% if wellness_log.mindfulness_type == "meditation" %}selected{% endif %}>Meditation</option>
+    <option value="breathing" {% if wellness_log.mindfulness_type == "breathing" %}selected{% endif %}>Breathing</option>
+    <option value="journaling" {% if wellness_log.mindfulness_type == "journaling" %}selected{% endif %}>Journaling</option>
+    <option value="yoga" {% if wellness_log.mindfulness_type == "yoga" %}selected{% endif %}>Yoga</option>
+  </select>
+</label>
   <label>Additional notes <textarea name="additional_comments">{{ wellness_log.additional_comments }}</textarea></label>
   <button type="submit">Save Wellness Log</button>
 </form>
