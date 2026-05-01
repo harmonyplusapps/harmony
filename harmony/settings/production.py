@@ -3,7 +3,8 @@ import os
 from celery.schedules import crontab
 
 DEBUG = False
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+_hosts = os.environ.get("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = [h for h in _hosts.split(",") if h]
 
 CELERY_BEAT_SCHEDULE = {
     "nightly-email": {
