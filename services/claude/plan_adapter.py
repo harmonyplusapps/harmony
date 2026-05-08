@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from apps.fitness.models import FitnessPlan, WorkoutLog
 from apps.health.models import HealthPlan, NutritionLog, WellnessLog
 from apps.plans.models import PlanAdaptationLog
-from services.claude.client import get_client
+from services.claude.client import get_async_client
 from services.claude.prompts import ADAPTATION_SYSTEM_PROMPT
 from services.claude.plan_parser import parse_and_save_plans
 
@@ -50,10 +50,10 @@ async def adapt_plans_for_user(user: User) -> None:
     if not fitness_plan or not health_plan:
         return
 
-    client = get_client()
+    client = get_async_client()
     context = await _async_build_context(user, fitness_plan, health_plan)
 
-    message = await client.messages.acreate(
+    message = await client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=8096,
         system=[

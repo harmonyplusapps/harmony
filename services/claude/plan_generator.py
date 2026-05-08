@@ -1,7 +1,7 @@
 import json
 from django.contrib.auth.models import User
 from apps.accounts.models import UserProfile
-from services.claude.client import get_client
+from services.claude.client import get_async_client
 from services.claude.prompts import PLAN_GENERATION_SYSTEM_PROMPT
 from services.claude.plan_parser import parse_and_save_plans
 
@@ -34,9 +34,9 @@ Generate week 1 starting from today."""
 
 async def generate_initial_plans(user: User) -> tuple:
     profile = await UserProfile.objects.aget(user=user)
-    client = get_client()
+    client = get_async_client()
 
-    message = await client.messages.acreate(
+    message = await client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=8096,
         system=[
