@@ -5,6 +5,8 @@ from services.claude.client import get_async_client
 from services.claude.prompts import PLAN_GENERATION_SYSTEM_PROMPT
 from services.claude.plan_parser import parse_and_save_plans
 
+MAX_CONTINUATIONS = 5
+
 
 def _build_user_context(profile: UserProfile) -> str:
     from datetime import date
@@ -32,28 +34,64 @@ def _build_user_context(profile: UserProfile) -> str:
 Generate week 1 starting from today."""
 
 
+def _strip_fences(text: str) -> str:
+    text = text.strip()
+    if text.startswith("```"):
+        text = text[text.index("\n") + 1:]
+    if text.endswith("```"):
+        text = text[:text.rfind("```")]
+    return text.strip()
+
+
+async def _generate_with_continuation(client, system, messages) -> str:
+    accumulated = ""
+
+    for attempt in range(MAX_CONTINUATIONS + 1):
+        async with client.messages.stream(
+            model="claude-sonnet-4-6",
+            max_tokens=32000,
+            system=system,
+            messages=messages,
+        ) as stream:
+            final_message = await stream.get_final_message()
+
+        chunk = final_message.content[0].text if final_message.content else ""
+        accumulated += chunk
+
+        if final_message.stop_reason != "max_tokens":
+            break
+
+        if attempt == MAX_CONTINUATIONS:
+            raise ValueError("Plan generation exceeded maximum continuations without completing.")
+
+        messages = messages + [
+            {"role": "assistant", "content": chunk},
+            {"role": "user", "content": "Continue exactly where you left off. No repetition, no preamble."},
+        ]
+
+    return accumulated
+
+
 async def generate_initial_plans(user: User) -> tuple:
     profile = await UserProfile.objects.aget(user=user)
     client = get_async_client()
 
-    message = await client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=8096,
-        system=[
-            {
-                "type": "text",
-                "text": PLAN_GENERATION_SYSTEM_PROMPT,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[{"role": "user", "content": _build_user_context(profile)}],
-    )
+    system = [
+        {
+            "type": "text",
+            "text": PLAN_GENERATION_SYSTEM_PROMPT,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
+    messages = [{"role": "user", "content": _build_user_context(profile)}]
 
-    raw = message.content[0].text
+    raw = await _generate_with_continuation(client, system, messages)
+
     try:
-        data = json.loads(raw)
-    except (json.JSONDecodeError, IndexError) as e:
-        raise ValueError(f"Claude returned invalid JSON: {e}") from e
+        data = json.loads(_strip_fences(raw))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Claude returned invalid JSON after continuation: {e}") from e
+
     return await _async_parse(user, data)
 
 

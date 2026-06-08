@@ -45,13 +45,13 @@ def _parse_fitness_plan(user: User, fp_data: dict) -> FitnessPlan:
                 workout_day=day,
                 exercise_cache=exercise_cache,
                 custom_name=ex_data["exercise_name"] if not exercise_cache else "",
-                section=ex_data["section"],
+                section=ex_data["section"][:20],
                 sets=ex_data.get("sets"),
                 reps=ex_data.get("reps"),
                 duration_seconds=ex_data.get("duration_seconds"),
                 distance_km=ex_data.get("distance_km"),
                 rest_seconds=ex_data.get("rest_seconds", 60),
-                intensity=ex_data["intensity"],
+                intensity=ex_data["intensity"][:20],
                 notes=ex_data.get("notes", ""),
                 order=i,
             )
@@ -60,12 +60,12 @@ def _parse_fitness_plan(user: User, fp_data: dict) -> FitnessPlan:
         if rs_data:
             RunningStrategy.objects.create(
                 workout_day=day,
-                run_type=rs_data["run_type"],
+                run_type=rs_data["run_type"][:20],
                 total_distance_km=rs_data["total_distance_km"],
                 total_duration_minutes=rs_data["total_duration_minutes"],
-                pace_target=rs_data["pace_target"],
+                pace_target=rs_data["pace_target"][:100],
                 structure=rs_data["structure"],
-                heart_rate_zone=rs_data.get("heart_rate_zone", ""),
+                heart_rate_zone=rs_data.get("heart_rate_zone", "")[:100],
                 notes=rs_data.get("notes", ""),
             )
 

@@ -18,7 +18,8 @@ def fetch_and_cache_exercise(name: str) -> ExerciseCache | None:
         f"{base_url}/exercise/search/",
         params={"term": name, "language": "english", "format": "json"},
     )
-    resp.raise_for_status()
+    if not resp.is_success:
+        return None
     data = resp.json()
 
     if not data.get("results"):
