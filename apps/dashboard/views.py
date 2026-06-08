@@ -67,3 +67,47 @@ def dashboard(request):
         "planned_days": planned_days,
         "meal_types": MealPlan.MEAL_TYPE_CHOICES,
     })
+
+
+@login_required
+def weekly_plan(request):
+    profile = getattr(request.user, "profile", None)
+    if not profile or not profile.onboarding_completed:
+        return redirect("onboarding_step1")
+
+    DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    today_name = date.today().strftime("%A")
+
+    fitness_plan = FitnessPlan.objects.filter(user=request.user, is_active=True).first()
+    health_plan = HealthPlan.objects.filter(user=request.user, is_active=True).first()
+
+    days = []
+    if fitness_plan:
+        workout_days = {
+            wd.day_of_week: wd
+            for wd in fitness_plan.workout_days
+                .prefetch_related("exercises__exercise_cache", "running_strategy")
+                .all()
+        }
+        meals_by_day = {}
+        if health_plan:
+            for meal in health_plan.meal_plans.order_by("order").all():
+                meals_by_day.setdefault(meal.day_of_week, []).append(meal)
+
+        days = [
+            {
+                "name": day,
+                "short": day[:3],
+                "workout": workout_days.get(day),
+                "meals": meals_by_day.get(day, []),
+                "is_today": day == today_name,
+            }
+            for day in DAYS
+        ]
+
+    return render(request, "dashboard/weekly_plan.html", {
+        "fitness_plan": fitness_plan,
+        "health_plan": health_plan,
+        "days": days,
+        "today_name": today_name,
+    })

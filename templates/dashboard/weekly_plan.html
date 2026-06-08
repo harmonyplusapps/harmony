@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Weekly Plan — Harmony{% endblock %}
+{% block content %}
+
+{% if not fitness_plan %}
+  <h1>Weekly Plan</h1>
+  <p>No active plan found. <a href="{% url 'dashboard' %}">Back to dashboard</a></p>
+{% else %}
+
+<h1>Week {{ fitness_plan.week_number }} · {{ fitness_plan.start_date }} – {{ fitness_plan.end_date }}</h1>
+
+<section>
+  <h2>Weekly Goal</h2>
+  <p>{{ fitness_plan.weekly_goal_summary }}</p>
+
+  <div x-data="{ open: false }">
+    <button @click="open = !open" type="button">
+      <span x-text="open ? 'Hide reasoning ▲' : 'Show Claude\'s reasoning ▼'"></span>
+    </button>
+    <div x-show="open" style="margin-top:0.75rem; padding:0.75rem; background:#f8f9fa; border-left:3px solid #2563eb;">
+      <p>{{ fitness_plan.claude_reasoning }}</p>
+    </div>
+  </div>
+</section>
+
+{% if health_plan %}
+<section>
+  <p>Daily targets: {{ health_plan.daily_calorie_target }} kcal · {{ health_plan.daily_protein_g }}g protein · {{ health_plan.daily_carbs_g }}g carbs · {{ health_plan.daily_fat_g }}g fat · {{ health_plan.daily_fiber_g }}g fiber · {{ health_plan.daily_water_ml }}ml water</p>
+</section>
+{% endif %}
+
+<div x-data="{ activeDay: '{{ today_name }}' }">
+
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin:1rem 0;">
+    {% for day in days %}
+    <button
+      type="button"
+      @click="activeDay = '{{ day.name }}'"
+      :style="activeDay === '{{ day.name }}' ? 'background:#1d4ed8;' : 'background:#6b7280;'"
+    >
+      {{ day.short }}
+    </button>
+    {% endfor %}
+  </div>
+
+  {% for day in days %}
+  <div x-show="activeDay === '{{ day.name }}'">
+    <h2>{{ day.name }}</h2>
+
+    <section>
+      <h3>Workout</h3>
+      {% if day.workout %}
+        <p>
+          <strong>{{ day.workout.day_type|title }}</strong> —
+          {{ day.workout.focus_area|title }} ·
+          {{ day.workout.estimated_duration_minutes }} min
+        </p>
+
+        {% if day.workout.warmup_description %}
+        <p><strong>Warmup:</strong> {{ day.workout.warmup_description }}</p>
+        {% endif %}
+
+        {% if day.workout.exercises.all %}
+        <table style="width:100%; border-collapse:collapse; margin:0.5rem 0;">
+          <thead>
+            <tr style="border-bottom:1px solid #eee; text-align:left;">
+              <th>Exercise</th><th>Section</th><th>Volume</th><th>Intensity</th><th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ex in day.workout.exercises.all %}
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td>{{ ex.display_name }}</td>
+              <td>{{ ex.section }}</td>
+              <td>
+                {% if ex.sets %}{{ ex.sets }} × {{ ex.reps }} reps{% endif %}
+                {% if ex.duration_seconds %}{{ ex.duration_seconds }}s{% endif %}
+                {% if ex.distance_km %}{{ ex.distance_km }}km{% endif %}
+              </td>
+              <td>{{ ex.intensity }}</td>
+              <td>{{ ex.notes }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+
+        {% with rs=day.workout.running_strategy %}
+        {% if rs %}
+        <div style="margin-top:0.75rem; padding:0.75rem; background:#f0fdf4; border-left:3px solid #16a34a;">
+          <strong>Running: {{ rs.run_type|title }}</strong> —
+          {{ rs.total_distance_km }}km · {{ rs.total_duration_minutes }} min ·
+          Pace: {{ rs.pace_target }}
+          {% if rs.heart_rate_zone %} · HR: {{ rs.heart_rate_zone }}{% endif %}
+          {% if rs.notes %}<p>{{ rs.notes }}</p>{% endif %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% if day.workout.cooldown_description %}
+        <p><strong>Cooldown:</strong> {{ day.workout.cooldown_description }}</p>
+        {% endif %}
+
+        {% if day.workout.notes %}
+        <p><em>{{ day.workout.notes }}</em></p>
+        {% endif %}
+
+      {% else %}
+        <p>Rest day.</p>
+      {% endif %}
+    </section>
+
+    <section>
+      <h3>Meals</h3>
+      {% if day.meals %}
+        {% for meal in day.meals %}
+        <div style="border:1px solid #e5e7eb; border-radius:6px; padding:0.75rem; margin-bottom:0.75rem;">
+          <strong>{{ meal.get_meal_type_display }}: {{ meal.meal_name }}</strong>
+          <p style="margin:0.25rem 0; color:#6b7280;">{{ meal.description }}</p>
+          <p style="margin:0.25rem 0; font-size:0.875rem;">
+            {{ meal.calories }} kcal · P: {{ meal.protein_g }}g · C: {{ meal.carbs_g }}g ·
+            F: {{ meal.fat_g }}g · Fiber: {{ meal.fiber_g }}g
+          </p>
+          {% if meal.ingredients %}
+          <p style="margin:0.25rem 0; font-size:0.875rem;"><strong>Ingredients:</strong> {{ meal.ingredients|join:", " }}</p>
+          {% endif %}
+          {% if meal.preparation_notes %}
+          <p style="margin:0.25rem 0; font-size:0.875rem; font-style:italic;">{{ meal.preparation_notes }}</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <p>No meals planned.</p>
+      {% endif %}
+    </section>
+
+  </div>
+  {% endfor %}
+
+</div>
+
+{% endif %}
+
+<p style="margin-top:2rem;"><a href="{% url 'dashboard' %}">← Back to Dashboard</a></p>
+
+{% endblock %}
