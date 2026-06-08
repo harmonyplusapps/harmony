@@ -127,7 +127,10 @@ def profile_edit(request):
             return redirect(reverse("profile_edit") + "?saved=1")
     else:
         form = ProfileEditForm(instance=profile)
-    return render(request, "accounts/profile_edit.html", {"form": form})
+    return render(request, "accounts/profile_edit.html", {
+        "form": form,
+        "saved": request.GET.get("saved"),
+    })
 
 
 @login_required

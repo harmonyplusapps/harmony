@@ -219,3 +219,33 @@ def test_regenerate_plan_resets_onboarding_and_redirects(client, profile_with_js
     assert "generating" in resp["Location"]
     profile_with_json.refresh_from_db()
     assert profile_with_json.onboarding_completed is False
+
+
+@pytest.mark.django_db
+def test_profile_edit_post_invalid_rerenders_form(client, profile_with_json):
+    client.login(username="edituser", password="pass")
+    resp = client.post(reverse("profile_edit"), {
+        "height_cm": "",  # required field left empty
+        "weight_kg": "70",
+        "gender": "female",
+        "date_of_birth": "1995-03-10",
+        "fitness_experience": "beginner",
+        "primary_goal": "Lose weight",
+        "diet_type": "vegan",
+        "food_allergies": "",
+        "food_preferences": "",
+        "daily_routine": "",
+        "wake_time": "07:00",
+        "sleep_time": "23:00",
+        "work_schedule": "flexible",
+        "workout_days_per_week": "4",
+        "preferred_workout_days": ["Monday"],
+        "running_days_per_week": "1",
+        "workout_location": "home",
+        "available_equipment": "",
+        "injury_history": "",
+        "medical_conditions": "",
+        "notification_email": "edit@example.com",
+    })
+    assert resp.status_code == 200
+    assert resp.context["form"].errors
