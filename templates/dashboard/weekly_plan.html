@@ -1,138 +1,140 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
 {% block title %}Weekly Plan — Harmony{% endblock %}
 {% block content %}
 
 {% if not fitness_plan %}
-  <h1>Weekly Plan</h1>
-  <p>No active plan found. <a href="{% url 'dashboard' %}">Back to dashboard</a></p>
+  <h1 style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px;">Weekly Plan</h1>
+  <p style="color:#555;">No active plan found. <a href="{% url 'dashboard' %}" style="color:#6c63ff;">Back to dashboard</a></p>
 {% else %}
 
-<h1>Week {{ fitness_plan.week_number }} · {{ fitness_plan.start_date }} – {{ fitness_plan.end_date }}</h1>
+<div style="margin-bottom:16px;">
+  <h1 style="font-size:18px;font-weight:800;color:#fff;margin-bottom:4px;">Week {{ fitness_plan.week_number }}</h1>
+  <p style="font-size:12px;color:#555;">{{ fitness_plan.start_date }} – {{ fitness_plan.end_date }}</p>
+</div>
 
-<section>
-  <h2>Weekly Goal</h2>
-  <p>{{ fitness_plan.weekly_goal_summary }}</p>
-
+<div class="card" style="margin-bottom:12px;">
+  <div class="card-title">Weekly Goal</div>
+  <p style="font-size:13px;color:#ccc;margin:6px 0 8px;">{{ fitness_plan.weekly_goal_summary }}</p>
   <div x-data="{ open: false }">
-    <button @click="open = !open" type="button">
-      <span x-text="open ? 'Hide reasoning ▲' : 'Show Claude\'s reasoning ▼'"></span>
+    <button @click="open = !open" type="button"
+      style="background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.25);color:#a78bfa;font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;">
+      <span x-text="open ? 'Hide reasoning ▲' : 'Show reasoning ▼'"></span>
     </button>
-    <div x-show="open" style="margin-top:0.75rem; padding:0.75rem; background:#f8f9fa; border-left:3px solid #2563eb;">
-      <p>{{ fitness_plan.claude_reasoning }}</p>
+    <div x-show="open" style="margin-top:10px;padding:10px 14px;background:rgba(108,99,255,0.08);border-left:3px solid #6c63ff;border-radius:0 8px 8px 0;font-size:12px;color:#ccc;">
+      {{ fitness_plan.claude_reasoning }}
     </div>
   </div>
-</section>
+</div>
 
 {% if health_plan %}
-<section>
-  <p>Daily targets: {{ health_plan.daily_calorie_target }} kcal · {{ health_plan.daily_protein_g }}g protein · {{ health_plan.daily_carbs_g }}g carbs · {{ health_plan.daily_fat_g }}g fat · {{ health_plan.daily_fiber_g }}g fiber · {{ health_plan.daily_water_ml }}ml water</p>
-</section>
+<div class="macro-strip">
+  <span><strong>{{ health_plan.daily_calorie_target }}</strong> kcal</span>
+  <span><strong>{{ health_plan.daily_protein_g }}g</strong> protein</span>
+  <span><strong>{{ health_plan.daily_carbs_g }}g</strong> carbs</span>
+  <span><strong>{{ health_plan.daily_fat_g }}g</strong> fat</span>
+  <span><strong>{{ health_plan.daily_fiber_g }}g</strong> fiber</span>
+  <span><strong>{{ health_plan.daily_water_ml }}ml</strong> water</span>
+</div>
 {% endif %}
 
 <div x-data="{ activeDay: '{{ today_name }}' }">
 
-  <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin:1rem 0;">
+  <div class="day-tabs">
     {% for day in days %}
     <button
       type="button"
       @click="activeDay = '{{ day.name }}'"
-      :style="activeDay === '{{ day.name }}' ? 'background:#1d4ed8;' : 'background:#6b7280;'"
-    >
-      {{ day.short }}
-    </button>
+      class="day-tab"
+      :style="activeDay === '{{ day.name }}' ? 'background:#6c63ff;color:#fff;border:none;' : 'background:#13131e;color:#555;border:1px solid #1c1c2e;'"
+    >{{ day.short }}</button>
     {% endfor %}
   </div>
 
   {% for day in days %}
   <div x-show="activeDay === '{{ day.name }}'">
-    <h2>{{ day.name }}</h2>
 
-    <section>
-      <h3>Workout</h3>
-      {% if day.workout %}
-        <p>
-          <strong>{{ day.workout.day_type|title }}</strong> —
-          {{ day.workout.focus_area|title }} ·
-          {{ day.workout.estimated_duration_minutes }} min
-        </p>
+    <div class="section-header">
+      <span class="section-title">{{ day.name }} — Workout</span>
+    </div>
 
-        {% if day.workout.warmup_description %}
-        <p><strong>Warmup:</strong> {{ day.workout.warmup_description }}</p>
-        {% endif %}
-
-        {% if day.workout.exercises.all %}
-        <table style="width:100%; border-collapse:collapse; margin:0.5rem 0;">
-          <thead>
-            <tr style="border-bottom:1px solid #eee; text-align:left;">
-              <th>Exercise</th><th>Section</th><th>Volume</th><th>Intensity</th><th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for ex in day.workout.exercises.all %}
-            <tr style="border-bottom:1px solid #f3f4f6;">
-              <td>{{ ex.display_name }}</td>
-              <td>{{ ex.section }}</td>
-              <td>
-                {% if ex.sets %}{{ ex.sets }} × {{ ex.reps }} reps{% endif %}
-                {% if ex.duration_seconds %}{{ ex.duration_seconds }}s{% endif %}
-                {% if ex.distance_km %}{{ ex.distance_km }}km{% endif %}
-              </td>
-              <td>{{ ex.intensity }}</td>
-              <td>{{ ex.notes }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% endif %}
-
-        {% with rs=day.workout.running_strategy %}
-        {% if rs %}
-        <div style="margin-top:0.75rem; padding:0.75rem; background:#f0fdf4; border-left:3px solid #16a34a;">
-          <strong>Running: {{ rs.run_type|title }}</strong> —
-          {{ rs.total_distance_km }}km · {{ rs.total_duration_minutes }} min ·
-          Pace: {{ rs.pace_target }}
-          {% if rs.heart_rate_zone %} · HR: {{ rs.heart_rate_zone }}{% endif %}
-          {% if rs.notes %}<p>{{ rs.notes }}</p>{% endif %}
+    {% if day.workout %}
+    <div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div>
+          <span style="font-size:13px;font-weight:700;color:#e0e0f0;">{{ day.workout.day_type|title }}</span>
+          <span style="font-size:11px;color:#555;margin-left:8px;">{{ day.workout.focus_area|title }} · {{ day.workout.estimated_duration_minutes }} min</span>
         </div>
-        {% endif %}
-        {% endwith %}
+      </div>
 
-        {% if day.workout.cooldown_description %}
-        <p><strong>Cooldown:</strong> {{ day.workout.cooldown_description }}</p>
-        {% endif %}
-
-        {% if day.workout.notes %}
-        <p><em>{{ day.workout.notes }}</em></p>
-        {% endif %}
-
-      {% else %}
-        <p>Rest day.</p>
+      {% if day.workout.warmup_description %}
+      <p style="font-size:12px;color:#888;margin-bottom:8px;"><strong style="color:#a78bfa;">Warmup:</strong> {{ day.workout.warmup_description }}</p>
       {% endif %}
-    </section>
 
-    <section>
-      <h3>Meals</h3>
-      {% if day.meals %}
-        {% for meal in day.meals %}
-        <div style="border:1px solid #e5e7eb; border-radius:6px; padding:0.75rem; margin-bottom:0.75rem;">
-          <strong>{{ meal.get_meal_type_display }}: {{ meal.meal_name }}</strong>
-          <p style="margin:0.25rem 0; color:#6b7280;">{{ meal.description }}</p>
-          <p style="margin:0.25rem 0; font-size:0.875rem;">
-            {{ meal.calories }} kcal · P: {{ meal.protein_g }}g · C: {{ meal.carbs_g }}g ·
-            F: {{ meal.fat_g }}g · Fiber: {{ meal.fiber_g }}g
-          </p>
-          {% if meal.ingredients %}
-          <p style="margin:0.25rem 0; font-size:0.875rem;"><strong>Ingredients:</strong> {{ meal.ingredients|join:", " }}</p>
-          {% endif %}
-          {% if meal.preparation_notes %}
-          <p style="margin:0.25rem 0; font-size:0.875rem; font-style:italic;">{{ meal.preparation_notes }}</p>
-          {% endif %}
-        </div>
-        {% endfor %}
-      {% else %}
-        <p>No meals planned.</p>
+      {% if day.workout.exercises.all %}
+      <table class="exercise-table">
+        <thead>
+          <tr><th>Exercise</th><th>Section</th><th>Volume</th><th>Intensity</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          {% for ex in day.workout.exercises.all %}
+          <tr>
+            <td>{{ ex.display_name }}</td>
+            <td>{{ ex.section }}</td>
+            <td>
+              {% if ex.sets %}{{ ex.sets }} × {{ ex.reps }} reps{% endif %}
+              {% if ex.duration_seconds %}{{ ex.duration_seconds }}s{% endif %}
+              {% if ex.distance_km %}{{ ex.distance_km }}km{% endif %}
+            </td>
+            <td>{{ ex.intensity }}</td>
+            <td>{{ ex.notes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
       {% endif %}
-    </section>
+
+      {% with rs=day.workout.running_strategy %}
+      {% if rs %}
+      <div class="running-block">
+        <strong>Running: {{ rs.run_type|title }}</strong> —
+        {{ rs.total_distance_km }}km · {{ rs.total_duration_minutes }} min · Pace: {{ rs.pace_target }}
+        {% if rs.heart_rate_zone %} · HR: {{ rs.heart_rate_zone }}{% endif %}
+        {% if rs.notes %}<p style="margin:4px 0 0;">{{ rs.notes }}</p>{% endif %}
+      </div>
+      {% endif %}
+      {% endwith %}
+
+      {% if day.workout.cooldown_description %}
+      <p style="font-size:12px;color:#888;margin-top:8px;"><strong style="color:#a78bfa;">Cooldown:</strong> {{ day.workout.cooldown_description }}</p>
+      {% endif %}
+
+      {% if day.workout.notes %}
+      <p style="font-size:12px;color:#555;font-style:italic;margin-top:8px;">{{ day.workout.notes }}</p>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="card" style="margin-bottom:10px;">
+      <p style="font-size:13px;color:#555;">Rest day.</p>
+    </div>
+    {% endif %}
+
+    <div class="section-header">
+      <span class="section-title">{{ day.name }} — Meals</span>
+    </div>
+
+    {% if day.meals %}
+      {% for meal in day.meals %}
+      <div class="card meal-card">
+        <div class="meal-name">{{ meal.get_meal_type_display }}: {{ meal.meal_name }}</div>
+        <div class="meal-desc">{{ meal.description }}</div>
+        <div class="meal-macros">{{ meal.calories }} kcal · P: {{ meal.protein_g }}g · C: {{ meal.carbs_g }}g · F: {{ meal.fat_g }}g · Fiber: {{ meal.fiber_g }}g</div>
+        {% if meal.ingredients %}<p style="font-size:11px;color:#555;margin-top:4px;">{{ meal.ingredients|join:", " }}</p>{% endif %}
+        {% if meal.preparation_notes %}<p style="font-size:11px;color:#555;font-style:italic;margin-top:2px;">{{ meal.preparation_notes }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="card"><p style="font-size:13px;color:#555;">No meals planned.</p></div>
+    {% endif %}
 
   </div>
   {% endfor %}
@@ -141,6 +143,6 @@
 
 {% endif %}
 
-<p style="margin-top:2rem;"><a href="{% url 'dashboard' %}">← Back to Dashboard</a></p>
+<p style="margin-top:20px;"><a href="{% url 'dashboard' %}" style="color:#6c63ff;font-size:13px;">← Back to Dashboard</a></p>
 
 {% endblock %}
