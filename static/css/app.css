@@ -33,7 +33,7 @@ body {
 .app-header {
   grid-column: 1 / -1;
   height: 56px;
-  background: #090912;
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -119,7 +119,7 @@ body {
 
 .nav-item.active {
   background: rgba(108, 99, 255, 0.18);
-  color: #a78bfa;
+  color: var(--accent-light);
 }
 
 .nav-item.active::before {
@@ -128,7 +128,7 @@ body {
   left: -1px;
   width: 3px;
   height: 24px;
-  background: #6c63ff;
+  background: var(--accent);
   border-radius: 0 4px 4px 0;
 }
 
