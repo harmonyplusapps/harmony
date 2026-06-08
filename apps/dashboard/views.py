@@ -55,7 +55,10 @@ def dashboard(request):
             completed=True,
         ).count()
 
+    progress_dots = [i < completed_days for i in range(max(planned_days, 1))]
+
     return render(request, "dashboard/index.html", {
+        "profile": profile,
         "today": today,
         "today_workout": today_workout,
         "workout_log": workout_log,
@@ -65,6 +68,7 @@ def dashboard(request):
         "health_plan": health_plan,
         "completed_days": completed_days,
         "planned_days": planned_days,
+        "progress_dots": progress_dots,
         "meal_types": MealPlan.MEAL_TYPE_CHOICES,
     })
 
@@ -106,6 +110,7 @@ def weekly_plan(request):
         ]
 
     return render(request, "dashboard/weekly_plan.html", {
+        "profile": profile,
         "fitness_plan": fitness_plan,
         "health_plan": health_plan,
         "days": days,
