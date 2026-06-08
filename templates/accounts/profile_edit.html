@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Edit Profile</h1>
 
-{% if saved %}
+{% if saved == "1" %}
 <div class="banner">
   <p>Profile saved. Would you like to regenerate your fitness and nutrition plan with the updated information?</p>
   <form method="post" action="{% url 'regenerate_plan' %}" style="display:inline">

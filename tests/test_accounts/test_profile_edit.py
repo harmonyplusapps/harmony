@@ -222,6 +222,13 @@ def test_regenerate_plan_resets_onboarding_and_redirects(client, profile_with_js
 
 
 @pytest.mark.django_db
+def test_regenerate_plan_rejects_get(client, profile_with_json):
+    client.login(username="edituser", password="pass")
+    resp = client.get(reverse("regenerate_plan"))
+    assert resp.status_code == 405
+
+
+@pytest.mark.django_db
 def test_profile_edit_post_invalid_rerenders_form(client, profile_with_json):
     client.login(username="edituser", password="pass")
     resp = client.post(reverse("profile_edit"), {
