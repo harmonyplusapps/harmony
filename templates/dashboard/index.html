@@ -22,5 +22,7 @@
   <h2>Weekly Progress</h2>
   <p>{{ completed_days }} / {{ planned_days }} workout days completed this week.</p>
   <a href="{% url 'weekly_plan' %}">View Full Week →</a>
+  &nbsp;·&nbsp;
+  <a href="{% url 'profile_edit' %}">Edit Profile</a>
 </section>
 {% endblock %}

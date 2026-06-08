@@ -4,7 +4,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
-from .forms import RegisterForm, OnboardingStep1Form, OnboardingStep2Form, OnboardingStep3Form
+from django.urls import reverse
+from .forms import RegisterForm, OnboardingStep1Form, OnboardingStep2Form, OnboardingStep3Form, ProfileEditForm
 from .models import UserProfile
 import asyncio
 from services.claude.plan_generator import generate_initial_plans
@@ -110,3 +111,32 @@ def onboarding_generating(request):
             return render(request, "accounts/onboarding/generating.html",
                           {"error": "Plan generation failed. Please try again."})
     return render(request, "accounts/onboarding/generating.html", {})
+
+
+@login_required
+def profile_edit(request):
+    profile = get_object_or_404(UserProfile, user=request.user)
+    if request.method == "POST":
+        form = ProfileEditForm(request.POST, instance=profile)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.preferred_workout_days = form.cleaned_data["preferred_workout_days"]
+            obj.food_allergies = form.cleaned_data["food_allergies"]
+            obj.available_equipment = form.cleaned_data["available_equipment"]
+            obj.save()
+            return redirect(reverse("profile_edit") + "?saved=1")
+    else:
+        form = ProfileEditForm(instance=profile)
+    return render(request, "accounts/profile_edit.html", {
+        "form": form,
+        "saved": request.GET.get("saved"),
+    })
+
+
+@login_required
+@require_POST
+def regenerate_plan(request):
+    profile = get_object_or_404(UserProfile, user=request.user)
+    profile.onboarding_completed = False
+    profile.save()
+    return redirect("onboarding_generating")

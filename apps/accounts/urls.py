@@ -9,4 +9,6 @@ urlpatterns = [
     path("onboarding/2/", views.onboarding_step2, name="onboarding_step2"),
     path("onboarding/3/", views.onboarding_step3, name="onboarding_step3"),
     path("onboarding/generating/", views.onboarding_generating, name="onboarding_generating"),
+    path("profile/edit/", views.profile_edit, name="profile_edit"),
+    path("profile/regenerate/", views.regenerate_plan, name="regenerate_plan"),
 ]
