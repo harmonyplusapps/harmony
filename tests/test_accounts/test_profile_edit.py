@@ -249,3 +249,11 @@ def test_profile_edit_post_invalid_rerenders_form(client, profile_with_json):
     })
     assert resp.status_code == 200
     assert resp.context["form"].errors
+
+
+@pytest.mark.django_db
+def test_dashboard_has_edit_profile_link(client, base_user, complete_profile):
+    client.login(username="base", password="testpass123")
+    resp = client.get(reverse("dashboard"))
+    assert resp.status_code == 200
+    assert "/accounts/profile/edit/" in resp.content.decode()
