@@ -1,55 +1,73 @@
-{% extends "base.html" %}
+{% extends "base_app.html" %}
 {% block title %}Edit Profile — Harmony{% endblock %}
 {% block content %}
-<h1>Edit Profile</h1>
 
 {% if saved == "1" %}
-<div class="banner">
-  <p>Profile saved. Would you like to regenerate your fitness and nutrition plan with the updated information?</p>
-  <form method="post" action="{% url 'regenerate_plan' %}" style="display:inline">
-    {% csrf_token %}
-    <button type="submit">Yes, regenerate</button>
-  </form>
-  <a href="{% url 'dashboard' %}">No, keep current plan</a>
+<div class="save-banner">
+  <span>Profile saved. Would you like to regenerate your fitness and nutrition plan with the updated information?</span>
+  <div class="save-banner-actions">
+    <form method="post" action="{% url 'regenerate_plan' %}" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn-primary">Yes, regenerate</button>
+    </form>
+    <a href="{% url 'dashboard' %}" class="btn-ghost">No, keep current</a>
+  </div>
 </div>
 {% endif %}
+
+<h1 class="form-page-title">Edit Profile</h1>
+<p class="form-page-sub">Update your details to keep your plan accurate.</p>
 
 <form method="post">
   {% csrf_token %}
 
-  <h2>Body Metrics</h2>
-  <p>{{ form.height_cm.label_tag }} {{ form.height_cm }} {{ form.height_cm.errors }}</p>
-  <p>{{ form.weight_kg.label_tag }} {{ form.weight_kg }} {{ form.weight_kg.errors }}</p>
-  <p>{{ form.gender.label_tag }} {{ form.gender }} {{ form.gender.errors }}</p>
-  <p>{{ form.date_of_birth.label_tag }} {{ form.date_of_birth }} {{ form.date_of_birth.errors }}</p>
+  <div class="card form-section">
+    <h2>Body Metrics</h2>
+    <div class="form-field">{{ form.date_of_birth.label_tag }}{{ form.date_of_birth }}{{ form.date_of_birth.errors }}</div>
+    <div class="form-field">{{ form.gender.label_tag }}{{ form.gender }}{{ form.gender.errors }}</div>
+    <div class="form-field">{{ form.height_cm.label_tag }}{{ form.height_cm }}{{ form.height_cm.errors }}</div>
+    <div class="form-field">{{ form.weight_kg.label_tag }}{{ form.weight_kg }}{{ form.weight_kg.errors }}</div>
+  </div>
 
-  <h2>Goals &amp; Diet</h2>
-  <p>{{ form.fitness_experience.label_tag }} {{ form.fitness_experience }} {{ form.fitness_experience.errors }}</p>
-  <p>{{ form.primary_goal.label_tag }} {{ form.primary_goal }} {{ form.primary_goal.errors }}</p>
-  <p>{{ form.diet_type.label_tag }} {{ form.diet_type }} {{ form.diet_type.errors }}</p>
-  <p>{{ form.food_allergies.label_tag }} {{ form.food_allergies }} {{ form.food_allergies.errors }}</p>
-  <p>{{ form.food_preferences.label_tag }} {{ form.food_preferences }} {{ form.food_preferences.errors }}</p>
+  <div class="card form-section">
+    <h2>Goals &amp; Diet</h2>
+    <div class="form-field">{{ form.primary_goal.label_tag }}{{ form.primary_goal }}{{ form.primary_goal.errors }}</div>
+    <div class="form-field">{{ form.fitness_experience.label_tag }}{{ form.fitness_experience }}{{ form.fitness_experience.errors }}</div>
+    <div class="form-field">{{ form.diet_type.label_tag }}{{ form.diet_type }}{{ form.diet_type.errors }}</div>
+    <div class="form-field">{{ form.food_preferences.label_tag }}{{ form.food_preferences }}{{ form.food_preferences.errors }}</div>
+    <div class="form-field">{{ form.food_allergies.label_tag }}{{ form.food_allergies }}{{ form.food_allergies.errors }}</div>
+  </div>
 
-  <h2>Schedule</h2>
-  <p>{{ form.daily_routine.label_tag }} {{ form.daily_routine }} {{ form.daily_routine.errors }}</p>
-  <p>{{ form.wake_time.label_tag }} {{ form.wake_time }} {{ form.wake_time.errors }}</p>
-  <p>{{ form.sleep_time.label_tag }} {{ form.sleep_time }} {{ form.sleep_time.errors }}</p>
-  <p>{{ form.work_schedule.label_tag }} {{ form.work_schedule }} {{ form.work_schedule.errors }}</p>
+  <div class="card form-section">
+    <h2>Schedule</h2>
+    <div class="form-field">{{ form.daily_routine.label_tag }}{{ form.daily_routine }}{{ form.daily_routine.errors }}</div>
+    <div class="form-field">{{ form.wake_time.label_tag }}{{ form.wake_time }}{{ form.wake_time.errors }}</div>
+    <div class="form-field">{{ form.sleep_time.label_tag }}{{ form.sleep_time }}{{ form.sleep_time.errors }}</div>
+    <div class="form-field">{{ form.work_schedule.label_tag }}{{ form.work_schedule }}{{ form.work_schedule.errors }}</div>
+  </div>
 
-  <h2>Workout Preferences</h2>
-  <p>{{ form.workout_days_per_week.label_tag }} {{ form.workout_days_per_week }} {{ form.workout_days_per_week.errors }}</p>
-  <p>{{ form.preferred_workout_days.label_tag }} {{ form.preferred_workout_days }} {{ form.preferred_workout_days.errors }}</p>
-  <p>{{ form.running_days_per_week.label_tag }} {{ form.running_days_per_week }} {{ form.running_days_per_week.errors }}</p>
-  <p>{{ form.workout_location.label_tag }} {{ form.workout_location }} {{ form.workout_location.errors }}</p>
-  <p>{{ form.available_equipment.label_tag }} {{ form.available_equipment }} {{ form.available_equipment.errors }}</p>
+  <div class="card form-section">
+    <h2>Workout Preferences</h2>
+    <div class="form-field">{{ form.workout_days_per_week.label_tag }}{{ form.workout_days_per_week }}{{ form.workout_days_per_week.errors }}</div>
+    <div class="form-field">{{ form.preferred_workout_days.label_tag }}{{ form.preferred_workout_days }}{{ form.preferred_workout_days.errors }}</div>
+    <div class="form-field">{{ form.running_days_per_week.label_tag }}{{ form.running_days_per_week }}{{ form.running_days_per_week.errors }}</div>
+    <div class="form-field">{{ form.workout_location.label_tag }}{{ form.workout_location }}{{ form.workout_location.errors }}</div>
+    <div class="form-field">{{ form.available_equipment.label_tag }}{{ form.available_equipment }}{{ form.available_equipment.errors }}</div>
+  </div>
 
-  <h2>Health</h2>
-  <p>{{ form.injury_history.label_tag }} {{ form.injury_history }} {{ form.injury_history.errors }}</p>
-  <p>{{ form.medical_conditions.label_tag }} {{ form.medical_conditions }} {{ form.medical_conditions.errors }}</p>
+  <div class="card form-section">
+    <h2>Health</h2>
+    <div class="form-field">{{ form.injury_history.label_tag }}{{ form.injury_history }}{{ form.injury_history.errors }}</div>
+    <div class="form-field">{{ form.medical_conditions.label_tag }}{{ form.medical_conditions }}{{ form.medical_conditions.errors }}</div>
+  </div>
 
-  <h2>Notifications</h2>
-  <p>{{ form.notification_email.label_tag }} {{ form.notification_email }} {{ form.notification_email.errors }}</p>
+  <div class="card form-section">
+    <h2>Notifications</h2>
+    <div class="form-field">{{ form.notification_email.label_tag }}{{ form.notification_email }}{{ form.notification_email.errors }}</div>
+    <div class="form-field">{{ form.notification_time.label_tag }}{{ form.notification_time }}{{ form.notification_time.errors }}</div>
+  </div>
 
-  <button type="submit">Save Profile</button>
+  <button type="submit" class="submit-btn">Save Profile</button>
 </form>
+
 {% endblock %}
