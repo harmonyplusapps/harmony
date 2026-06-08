@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Harmony{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="https://unpkg.com/htmx.org@2.0.0" defer></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+<div class="app-shell">
+
+  <header class="app-header">
+    <a href="{% url 'dashboard' %}" class="header-brand">
+      <svg width="36" height="36" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="56" height="56" rx="10" fill="#1a1a2e"/>
+        <rect x="13" y="12" width="7" height="32" rx="2" fill="none" stroke="url(#logo-grad)" stroke-width="2.5"/>
+        <rect x="36" y="12" width="7" height="32" rx="2" fill="none" stroke="url(#logo-grad)" stroke-width="2.5"/>
+        <line x1="20" y1="26" x2="36" y2="26" stroke="url(#logo-grad)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="28" cy="26" r="3" fill="url(#logo-grad)"/>
+        <defs>
+          <linearGradient id="logo-grad" x1="13" y1="12" x2="43" y2="44" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#a78bfa"/>
+            <stop offset="1" stop-color="#6c63ff"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="header-wordmark">
+        <span class="wordmark-name">Harmony</span>
+        <span class="wordmark-tagline">Your fitness companion</span>
+      </div>
+    </a>
+    <button class="header-notif" type="button" aria-label="Notifications">🔔</button>
+  </header>
+
+  <nav class="app-sidebar">
+    <a href="{% url 'dashboard' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+       title="Dashboard">🏠</a>
+    <a href="{% url 'weekly_plan' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'weekly_plan' %}active{% endif %}"
+       title="Weekly Plan">📅</a>
+    <a href="{% url 'profile_edit' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'profile_edit' %}active{% endif %}"
+       title="Profile">👤</a>
+    <div class="nav-spacer"></div>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="nav-item nav-logout" title="Logout">🚪</button>
+    </form>
+  </nav>
+
+  <main class="app-main">
+    {% block content %}{% endblock %}
+  </main>
+
+</div>
+</body>
+</html>
