@@ -119,7 +119,7 @@ def test_weekly_plan_renders_workout_data(client, user_with_plan):
     resp = client.get(reverse("weekly_plan"))
     assert resp.status_code == 200
     content = resp.content.decode()
-    assert "strength" in content.lower()
+    assert "Strength" in content
     assert "Build base fitness" in content
 
 
