@@ -117,3 +117,26 @@ def test_form_empty_equipment_returns_empty_list(profile_with_json):
     form = ProfileEditForm(data, instance=profile_with_json)
     assert form.is_valid(), form.errors
     assert form.cleaned_data["available_equipment"] == []
+
+
+@pytest.mark.django_db
+def test_form_preferred_workout_days_cleaned_data(profile_with_json):
+    data = {
+        "height_cm": "170", "weight_kg": "70", "gender": "female",
+        "date_of_birth": "1995-03-10", "fitness_experience": "beginner",
+        "primary_goal": "Lose weight", "diet_type": "vegan",
+        "food_allergies": "",
+        "food_preferences": "", "daily_routine": "",
+        "wake_time": "07:00", "sleep_time": "23:00",
+        "work_schedule": "flexible",
+        "workout_days_per_week": "4",
+        "preferred_workout_days": ["Tuesday", "Thursday", "Saturday"],
+        "running_days_per_week": "1",
+        "workout_location": "home",
+        "available_equipment": "",
+        "injury_history": "", "medical_conditions": "",
+        "notification_email": "edit@example.com",
+    }
+    form = ProfileEditForm(data, instance=profile_with_json)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["preferred_workout_days"] == ["Tuesday", "Thursday", "Saturday"]

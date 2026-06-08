@@ -88,7 +88,7 @@ class ProfileEditForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
+        if self.instance.pk:
             self.initial["preferred_workout_days"] = self.instance.preferred_workout_days
             self.initial["available_equipment"] = ", ".join(self.instance.available_equipment or [])
             self.initial["food_allergies"] = ", ".join(self.instance.food_allergies or [])
@@ -101,6 +101,7 @@ class ProfileEditForm(forms.ModelForm):
         val = self.cleaned_data.get("food_allergies", "")
         return [v.strip() for v in val.split(",") if v.strip()]
 
+    # additional_comments excluded per spec — users cannot edit it here
     class Meta:
         model = UserProfile
         fields = [
