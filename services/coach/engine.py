@@ -12,6 +12,7 @@ LOW_ENERGY = 3           # energy is 1-10
 PUSH_STREAK = 3          # consecutive days to start nudging harder
 OVERTRAIN_STREAK = 5     # consecutive days to flag overtraining watch
 
+# --- User-facing strings -----------------------------------------------------
 ACTIVE_RECOVERY_SUGGESTION = "20–30 min easy walk plus full-body mobility and light stretching."
 
 LOW_ENERGY_MULTIPLIER = 0.7
@@ -147,6 +148,7 @@ def decide(snapshot, workout_day) -> DailyDecision:
     modifier = round(max(MIN_INTENSITY, min(MAX_INTENSITY, modifier)), 3)
 
     if candidates:
+        # Tie on deviation: appearance order wins (energy > momentum > cycle > streak).
         rationale = max(candidates, key=lambda c: abs(c[0] - 1.0))[1]
     else:
         rationale = "On plan — go for it."

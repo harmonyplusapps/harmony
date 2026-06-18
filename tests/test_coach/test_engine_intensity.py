@@ -70,7 +70,8 @@ def test_push_streak_adds_flag_and_small_bump():
 
 
 def test_overtraining_watch_flag_at_streak_5():
-    d = decide(_snap(momentum=_mom(bucket="current", streak=6)), _workout())
+    # streak exactly at OVERTRAIN_STREAK (5) fires the flag
+    d = decide(_snap(momentum=_mom(bucket="current", streak=5)), _workout())
     assert "overtraining_watch" in d.flags
 
 
@@ -87,3 +88,19 @@ def test_compounding_clamps_to_max():
 def test_rationale_picks_largest_deviation_rule():
     d = decide(_snap(energy=2, momentum=_mom(bucket="full_reset", streak=0)), _workout())
     assert "restart" in d.rationale.lower() or "light" in d.rationale.lower()
+
+
+def test_missed_long_bucket_scales_to_0_6_with_its_own_rationale():
+    d = decide(_snap(momentum=_mom(bucket="missed_long", streak=0)), _workout())
+    assert d.intensity_modifier == 0.6
+    assert "break" in d.rationale.lower()
+
+
+def test_period_phase_scales_to_0_85():
+    d = decide(_snap(cycle_phase="period"), _workout())
+    assert d.intensity_modifier == 0.85
+
+
+def test_ovulation_phase_scales_to_1_1():
+    d = decide(_snap(cycle_phase="ovulation"), _workout())
+    assert d.intensity_modifier == 1.1
