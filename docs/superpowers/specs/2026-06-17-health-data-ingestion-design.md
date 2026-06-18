@@ -155,3 +155,16 @@ Supporting pure functions (independently testable):
 - Progressive overload / deload tracking (slice #4).
 - Wearable / Apple Health sync.
 - Backfilling historical data.
+
+## Tracked follow-ups for slice #3 (decision engine)
+
+Raised during code review of this slice; deferred because they only pay off once the
+engine exists and exercises the interface for real:
+
+- **Add `focus_area` to `SorenessItem`.** The engine's main use of soreness is "does
+  this affect today's planned focus area?" Populate it in `get_health_snapshot` from
+  `MUSCLE_GROUP_TO_FOCUS` so the engine doesn't re-import a model-layer constant across
+  the service boundary.
+- **`HealthSnapshot` immutability.** Currently a plain dataclass with `list` fields
+  (documented as read-only). If the engine benefits from a hashable/frozen snapshot,
+  switch the list fields to tuples and freeze it.
