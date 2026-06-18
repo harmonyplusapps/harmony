@@ -122,8 +122,11 @@ single intensity rule whose multiplier deviates most from 1.0 (ties broken by pr
 order 4→7), so the user gets one clear reason. If no rule fired and intensity is 1.0:
 `is_override = False`, rationale = "On plan — go for it."
 
-`is_override` is True when `recommended_day_type != planned_day_type` OR
-`abs(intensity_modifier - 1.0) > 1e-9` OR `avoid_focus_areas` is non-empty.
+`is_override` is set per branch: `False` for the rest / no-plan and on-plan cases;
+`True` for the recovery and soreness hard stops and whenever the final
+`intensity_modifier` differs from 1.0. `avoid_focus_areas` is informational (shown in
+the UI when non-empty) and does **not** by itself flip `is_override` — a sore but
+non-conflicting focus area on an otherwise on-plan day leaves `is_override = False`.
 
 ### 4. Dashboard integration
 
