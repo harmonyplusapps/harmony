@@ -80,3 +80,23 @@ def test_momentum_ignores_future_dates():
     on = date(2026, 6, 17)
     m = compute_momentum({on + timedelta(2)}, on)
     assert m == Momentum(current_streak=0, days_since_last=None, bucket="no_history")
+
+
+def test_momentum_missed_4_7_upper_boundary():
+    on = date(2026, 6, 17)
+    assert compute_momentum({on - timedelta(7)}, on).bucket == "missed_4_7"
+
+
+def test_momentum_missed_long_lower_boundary():
+    on = date(2026, 6, 17)
+    assert compute_momentum({on - timedelta(8)}, on).bucket == "missed_long"
+
+
+def test_momentum_missed_long_upper_boundary():
+    on = date(2026, 6, 17)
+    assert compute_momentum({on - timedelta(13)}, on).bucket == "missed_long"
+
+
+def test_momentum_full_reset_lower_boundary():
+    on = date(2026, 6, 17)
+    assert compute_momentum({on - timedelta(14)}, on).bucket == "full_reset"

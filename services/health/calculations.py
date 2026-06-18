@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 
-def compute_cycle_phase(last_period_start, cycle_length, on_date):
+def compute_cycle_phase(last_period_start: date | None, cycle_length: int, on_date: date) -> str | None:
     """Return menstrual phase for on_date, or None if untracked / invalid / date precedes start.
 
     Phases (day_in_cycle is 1-based):
@@ -26,14 +26,15 @@ def compute_cycle_phase(last_period_start, cycle_length, on_date):
     return "luteal"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Momentum:
     current_streak: int          # consecutive days ending at the most recent completed workout
     days_since_last: int | None  # days from on_date back to last completed workout (None if none)
     bucket: str                  # no_history | current | missed_2_3 | missed_4_7 | missed_long | full_reset
 
 
-def _momentum_bucket(days_since_last):
+def _momentum_bucket(days_since_last: int) -> str:
+    """Bucket by days SINCE the last completed workout (not gaps between workouts)."""
     if days_since_last <= 1:
         return "current"
     if days_since_last <= 3:
@@ -45,7 +46,7 @@ def _momentum_bucket(days_since_last):
     return "full_reset"
 
 
-def compute_momentum(completed_dates, on_date):
+def compute_momentum(completed_dates: set[date], on_date: date) -> Momentum:
     """Derive streak/recency from the set of dates with a completed workout."""
     past = sorted(d for d in completed_dates if d <= on_date)
     if not past:
