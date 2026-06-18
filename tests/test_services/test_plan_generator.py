@@ -13,7 +13,9 @@ FIXTURE = json.loads((Path(__file__).parent.parent / "fixtures/claude_plan_respo
 
 
 @pytest.fixture
-def user_with_profile(db):
+def user_with_profile(transactional_db):
+    # transactional_db (not db): generate_initial_plans uses the async ORM (aget),
+    # which runs on a separate connection that can only see committed data.
     user = User.objects.create_user(username="testuser2", password="pass")
     UserProfile.objects.create(
         user=user, height_cm=175, weight_kg=80, gender="male",
@@ -29,14 +31,31 @@ def user_with_profile(db):
     return user
 
 
+class _MockStreamCM:
+    """Async context manager standing in for client.messages.stream(...)."""
+
+    def __init__(self, message):
+        self._message = message
+
+    async def __aenter__(self):
+        stream = MagicMock()
+        stream.get_final_message = AsyncMock(return_value=self._message)
+        return stream
+
+    async def __aexit__(self, *exc):
+        return False
+
+
 @pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
 async def test_generate_initial_plans_calls_claude_and_parses(user_with_profile):
     mock_message = MagicMock()
     mock_message.content = [MagicMock(text=json.dumps(FIXTURE))]
+    mock_message.stop_reason = "end_turn"  # single pass, no continuation
 
-    with patch("services.claude.plan_generator.get_client") as mock_get_client:
+    with patch("services.claude.plan_generator.get_async_client") as mock_get_client:
         mock_client = MagicMock()
-        mock_client.messages.acreate = AsyncMock(return_value=mock_message)
+        mock_client.messages.stream = MagicMock(return_value=_MockStreamCM(mock_message))
         mock_get_client.return_value = mock_client
 
         with patch("services.wger.client.httpx.get") as mock_wger:
