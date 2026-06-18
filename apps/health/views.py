@@ -1,8 +1,9 @@
 from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_POST
-from .models import NutritionLog, WellnessLog
+from .models import NutritionLog, WellnessLog, SorenessLog, PeriodLog
 
 
 @login_required
@@ -45,3 +46,52 @@ def log_wellness(request):
     log.additional_comments = request.POST.get("additional_comments", "")
     log.save()
     return HttpResponse('<span class="saved">Saved ✓</span>')
+
+
+@login_required
+def checkin(request):
+    today = date.today()
+    if request.method == "POST":
+        # Replace today's soreness with whatever groups were submitted.
+        SorenessLog.objects.filter(user=request.user, date=today).delete()
+        for group, _label in SorenessLog.MUSCLE_GROUP_CHOICES:
+            severity = request.POST.get(f"soreness_{group}")
+            if severity in {"mild", "moderate", "severe"}:
+                SorenessLog.objects.create(
+                    user=request.user, date=today, muscle_group=group, severity=severity,
+                )
+
+        steps = request.POST.get("steps") or None
+        resting_hr = request.POST.get("resting_hr_bpm") or None
+        if steps is not None or resting_hr is not None:
+            log, _ = WellnessLog.objects.get_or_create(
+                user=request.user, date=today,
+                defaults={"sleep_hours": 0, "sleep_quality": 3, "mood_score": 5,
+                          "stress_level": 5, "energy_level": 5},
+            )
+            log.steps = steps
+            log.resting_hr_bpm = resting_hr
+            log.save()
+
+        if request.POST.get("period_started") == "true" and request.user.profile.tracks_cycle:
+            PeriodLog.objects.get_or_create(user=request.user, start_date=today)
+
+        return render(request, "health/checkin.html", _checkin_context(request, today))
+
+    return render(request, "health/checkin.html", _checkin_context(request, today))
+
+
+def _checkin_context(request, today):
+    soreness = {
+        s.muscle_group: s.severity
+        for s in SorenessLog.objects.filter(user=request.user, date=today)
+    }
+    wellness = WellnessLog.objects.filter(user=request.user, date=today).first()
+    return {
+        "muscle_groups": SorenessLog.MUSCLE_GROUP_CHOICES,
+        "severities": SorenessLog.SEVERITY_CHOICES,
+        "soreness": soreness,
+        "steps": wellness.steps if wellness else "",
+        "resting_hr_bpm": wellness.resting_hr_bpm if wellness else "",
+        "tracks_cycle": request.user.profile.tracks_cycle,
+    }
