@@ -84,7 +84,8 @@ def _hard_yesterday(snapshot) -> bool:
 def _poor_sleep(snapshot) -> bool:
     if snapshot.sleep_quality is not None and snapshot.sleep_quality <= POOR_SLEEP_QUALITY:
         return True
-    if snapshot.sleep_hours is not None and snapshot.sleep_hours < POOR_SLEEP_HOURS:
+    # sleep_hours == 0 is the unlogged WellnessLog placeholder, not a real 0-hour night.
+    if snapshot.sleep_hours is not None and 0 < snapshot.sleep_hours < POOR_SLEEP_HOURS:
         return True
     return False
 
@@ -163,14 +164,23 @@ def decide(snapshot, workout_day) -> DailyDecision:
     )
 
 
-def decide_today(user, on_date) -> DailyDecision:
-    """Fetch today's snapshot + planned workout and return the daily decision."""
+_UNSET = object()
+
+
+def decide_today(user, on_date, workout_day=_UNSET) -> DailyDecision:
+    """Fetch today's snapshot + planned workout and return the daily decision.
+
+    Pass `workout_day` (possibly None) to reuse an already-resolved WorkoutDay and
+    skip the plan/workout queries; omit it to have this function resolve today's
+    active-plan workout itself.
+    """
     from apps.fitness.models import FitnessPlan, WorkoutDay
     snapshot = get_health_snapshot(user, on_date)
-    plan = FitnessPlan.objects.filter(user=user, is_active=True).first()
-    workout_day = None
-    if plan is not None:
-        workout_day = WorkoutDay.objects.filter(
-            fitness_plan=plan, day_of_week=on_date.strftime("%A")
-        ).first()
+    if workout_day is _UNSET:
+        plan = FitnessPlan.objects.filter(user=user, is_active=True).first()
+        workout_day = None
+        if plan is not None:
+            workout_day = WorkoutDay.objects.filter(
+                fitness_plan=plan, day_of_week=on_date.strftime("%A")
+            ).first()
     return decide(snapshot, workout_day)

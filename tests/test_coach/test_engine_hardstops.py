@@ -91,3 +91,12 @@ def test_soreness_in_other_focus_area_no_daytype_override():
 
 def test_returns_dailydecision_instance():
     assert isinstance(decide(_snap(), _workout()), DailyDecision)
+
+
+def test_phantom_zero_sleep_does_not_trigger_recovery():
+    # sleep_hours == 0 is the unlogged placeholder, not real poor sleep
+    yesterday = ON - timedelta(days=1)
+    hard = SimpleNamespace(date=yesterday, perceived_exertion=9,
+                           workout_day=SimpleNamespace(day_type="strength"))
+    d = decide(_snap(sleep_hours=Decimal("0"), sleep_quality=4, recent_workouts=[hard]), _workout())
+    assert d.recommended_day_type != "active_recovery"

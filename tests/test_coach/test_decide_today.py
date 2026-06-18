@@ -60,3 +60,13 @@ def test_decide_today_clean_day_is_on_plan():
     d = decide_today(user, date.today())
     assert d.recommended_day_type == "strength"
     assert d.is_override is False
+
+
+@pytest.mark.django_db
+def test_decide_today_uses_passed_workout_day():
+    user = _user()
+    plan = _plan_with_today(user, focus_area="upper_body")
+    wd = WorkoutDay.objects.get(fitness_plan=plan)
+    d = decide_today(user, date.today(), workout_day=wd)
+    assert d.recommended_day_type == "strength"
+    assert d.is_override is False
