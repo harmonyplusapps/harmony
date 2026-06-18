@@ -1,7 +1,8 @@
 from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.db import transaction
 from django.views.decorators.http import require_POST
 from .models import NutritionLog, WellnessLog, SorenessLog, PeriodLog
 
@@ -52,14 +53,15 @@ def log_wellness(request):
 def checkin(request):
     today = date.today()
     if request.method == "POST":
-        # Replace today's soreness with whatever groups were submitted.
-        SorenessLog.objects.filter(user=request.user, date=today).delete()
-        for group, _label in SorenessLog.MUSCLE_GROUP_CHOICES:
-            severity = request.POST.get(f"soreness_{group}")
-            if severity in {"mild", "moderate", "severe"}:
-                SorenessLog.objects.create(
-                    user=request.user, date=today, muscle_group=group, severity=severity,
-                )
+        # Replace today's soreness with whatever groups were submitted (atomic).
+        with transaction.atomic():
+            SorenessLog.objects.filter(user=request.user, date=today).delete()
+            for group, _label in SorenessLog.MUSCLE_GROUP_CHOICES:
+                severity = request.POST.get(f"soreness_{group}")
+                if severity in {"mild", "moderate", "severe"}:
+                    SorenessLog.objects.create(
+                        user=request.user, date=today, muscle_group=group, severity=severity,
+                    )
 
         steps = request.POST.get("steps") or None
         resting_hr = request.POST.get("resting_hr_bpm") or None
@@ -69,19 +71,21 @@ def checkin(request):
                 defaults={"sleep_hours": 0, "sleep_quality": 3, "mood_score": 5,
                           "stress_level": 5, "energy_level": 5},
             )
-            log.steps = steps
-            log.resting_hr_bpm = resting_hr
+            log.steps = int(steps) if steps is not None else None
+            log.resting_hr_bpm = int(resting_hr) if resting_hr is not None else None
             log.save()
 
         if request.POST.get("period_started") == "true" and request.user.profile.tracks_cycle:
             PeriodLog.objects.get_or_create(user=request.user, start_date=today)
 
-        return render(request, "health/checkin.html", _checkin_context(request, today))
+        # Post/Redirect/Get: avoid re-submitting saves on refresh.
+        return redirect("health_checkin")
 
     return render(request, "health/checkin.html", _checkin_context(request, today))
 
 
 def _checkin_context(request, today):
+    """Build the check-in template context. Call only from an authenticated view."""
     soreness = {
         s.muscle_group: s.severity
         for s in SorenessLog.objects.filter(user=request.user, date=today)

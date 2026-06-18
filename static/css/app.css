@@ -511,3 +511,92 @@ body {
 }
 
 .submit-btn:hover { background: #5b53e8; }
+
+/* ── Check-in page ── */
+.checkin-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 8px 0 32px;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.checkin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.checkin-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 0;
+}
+
+.checkin-block legend {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-light);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0 4px;
+  margin-bottom: 12px;
+}
+
+.soreness-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.soreness-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.soreness-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.soreness-select {
+  width: 100%;
+  background: #0d0d16;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.soreness-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.period-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}

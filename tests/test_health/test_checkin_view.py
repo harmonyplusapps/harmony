@@ -60,7 +60,7 @@ def test_checkin_post_saves_soreness_steps_and_resting_hr(client, db):
         "soreness_core": "mild",
         "steps": "7400",
         "resting_hr_bpm": "60",
-    })
+    }, follow=True)
     assert resp.status_code == 200
     today = date.today()
     sore = {s.muscle_group: s.severity for s in SorenessLog.objects.filter(user__username="c", date=today)}
@@ -86,3 +86,11 @@ def test_checkin_post_period_button_creates_periodlog(client, db):
     client.login(username="c", password="testpass123")
     client.post(reverse("health_checkin"), {"period_started": "true"})
     assert PeriodLog.objects.filter(user=user, start_date=date.today()).exists()
+
+
+@pytest.mark.django_db
+def test_checkin_post_without_numbers_creates_no_wellnesslog(client, db):
+    _make_user()
+    client.login(username="c", password="testpass123")
+    client.post(reverse("health_checkin"), {"soreness_quads": "mild"})
+    assert not WellnessLog.objects.filter(user__username="c", date=date.today()).exists()
