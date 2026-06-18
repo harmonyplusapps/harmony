@@ -120,7 +120,12 @@ Supporting pure functions (independently testable):
     luteal: days 15–end. (Period overlaps early follicular; period takes precedence
     for days 1–5.)
 - `compute_momentum(workout_logs, date) -> Momentum` — streak / consecutive-days /
-  days-since-last, bucketed per the decision tree (1 / 2–3 / 4–7 / 14+ missed days).
+  days-since-last, bucketed by **days since last completed workout**:
+  `current` (≤1) / `missed_2_3` (2–3) / `missed_4_7` (4–7) / `missed_long` (8–13) /
+  `full_reset` (14+); `no_history` when there are no completed workouts. The
+  `missed_long` bucket fills the gap the original coaching decision tree left between
+  "4–7 days" and "2+ weeks" — it lets the engine prescribe a gentler reset than a full
+  Week-1 restart for absences of 1–2 weeks. Also guards `cycle_length <= 0 -> None`.
 
 ## Error handling & edge cases
 
