@@ -14,6 +14,16 @@ OVERTRAIN_STREAK = 5     # consecutive days to flag overtraining watch
 
 ACTIVE_RECOVERY_SUGGESTION = "20–30 min easy walk plus full-body mobility and light stretching."
 
+LOW_ENERGY_MULTIPLIER = 0.7
+PUSH_MULTIPLIER = 1.05
+MOMENTUM_MULTIPLIER = {
+    "current": 1.0, "no_history": 1.0,
+    "missed_2_3": 0.85, "missed_4_7": 0.6, "missed_long": 0.6, "full_reset": 0.5,
+}
+CYCLE_MULTIPLIER = {
+    "luteal": 0.85, "period": 0.85, "follicular": 1.1, "ovulation": 1.1,
+}
+
 
 @dataclass(frozen=True)
 class DailyDecision:
@@ -24,6 +34,24 @@ class DailyDecision:
     rationale: str
     flags: tuple[str, ...]
     is_override: bool
+
+
+def _momentum_rationale(bucket) -> str:
+    return {
+        "missed_2_3": "A couple days off — easing back in.",
+        "missed_4_7": "Been a few days — keeping it moderate.",
+        "missed_long": "Welcome back — easing in after the break.",
+        "full_reset": "Fresh restart — keeping today light.",
+    }.get(bucket, "")
+
+
+def _cycle_rationale(phase) -> str:
+    return {
+        "luteal": "Luteal phase — favoring a steadier effort.",
+        "period": "On your period — keeping the effort gentle.",
+        "follicular": "Follicular phase — good day to push.",
+        "ovulation": "Peak-energy window — great day to push.",
+    }.get(phase, "")
 
 
 def _sore_focus_areas(snapshot) -> tuple[str, ...]:
@@ -89,9 +117,43 @@ def decide(snapshot, workout_day) -> DailyDecision:
             flags=(), is_override=True,
         )
 
-    # Intensity path (fully implemented in Task 3). Placeholder: on plan.
+    # Intensity path: compounding modifiers, single best rationale.
+    modifier = 1.0
+    candidates = []  # (multiplier, rationale)
+    flags = []
+
+    if snapshot.energy is not None and snapshot.energy <= LOW_ENERGY:
+        modifier *= LOW_ENERGY_MULTIPLIER
+        candidates.append((LOW_ENERGY_MULTIPLIER, "Energy's low today — lighter session."))
+
+    mom_mult = MOMENTUM_MULTIPLIER.get(snapshot.momentum.bucket, 1.0)
+    if mom_mult != 1.0:
+        modifier *= mom_mult
+        candidates.append((mom_mult, _momentum_rationale(snapshot.momentum.bucket)))
+
+    cycle_mult = CYCLE_MULTIPLIER.get(snapshot.cycle_phase, 1.0)
+    if cycle_mult != 1.0:
+        modifier *= cycle_mult
+        candidates.append((cycle_mult, _cycle_rationale(snapshot.cycle_phase)))
+
+    streak = snapshot.momentum.current_streak
+    if streak >= PUSH_STREAK:
+        modifier *= PUSH_MULTIPLIER
+        flags.append("push")
+        candidates.append((PUSH_MULTIPLIER, f"{streak}-day streak — pushing a little."))
+    if streak >= OVERTRAIN_STREAK:
+        flags.append("overtraining_watch")
+
+    modifier = round(max(MIN_INTENSITY, min(MAX_INTENSITY, modifier)), 3)
+
+    if candidates:
+        rationale = max(candidates, key=lambda c: abs(c[0] - 1.0))[1]
+    else:
+        rationale = "On plan — go for it."
+
     return DailyDecision(
         planned_day_type=planned, recommended_day_type=planned,
-        intensity_modifier=1.0, avoid_focus_areas=avoid,
-        rationale="On plan — go for it.", flags=(), is_override=False,
+        intensity_modifier=modifier, avoid_focus_areas=avoid,
+        rationale=rationale, flags=tuple(flags),
+        is_override=abs(modifier - 1.0) > 1e-9,
     )
