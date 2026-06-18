@@ -69,8 +69,11 @@ def test_snapshot_assembles_logged_data(user):
     assert snap.stress == 3
     assert snap.steps == 9000
     assert snap.resting_hr == 55
-    assert SorenessItem("quads", "severe") in snap.soreness
-    assert SorenessItem("core", "mild") in snap.soreness
+    by_group = {s.muscle_group: s for s in snap.soreness}
+    assert by_group["quads"].severity == "severe"
+    assert by_group["quads"].focus_area == "lower_body"
+    assert by_group["core"].severity == "mild"
+    assert by_group["core"].focus_area == "core"
     assert snap.cycle_phase == "period"
     assert snap.momentum.bucket == "current"
     assert len(snap.recent_workouts) == 1

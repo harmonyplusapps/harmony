@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from apps.fitness.models import FitnessPlan, WorkoutDay, WorkoutLog
 from apps.health.models import HealthPlan, MealPlan, WellnessLog
+from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION
 
 
 @login_required
@@ -29,6 +30,9 @@ def dashboard(request):
                 workout_day=today_workout,
                 defaults={"date": today},
             )
+
+    decision = decide_today(request.user, today, workout_day=today_workout)
+    intensity_pct = round(decision.intensity_modifier * 100)  # always an int
 
     today_meals = []
     if health_plan:
@@ -62,6 +66,9 @@ def dashboard(request):
         "today": today,
         "today_workout": today_workout,
         "workout_log": workout_log,
+        "decision": decision,
+        "intensity_pct": intensity_pct,
+        "active_recovery_suggestion": ACTIVE_RECOVERY_SUGGESTION,
         "today_meals": today_meals,
         "wellness_log": wellness_log,
         "fitness_plan": fitness_plan,
