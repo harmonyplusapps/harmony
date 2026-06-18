@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import timedelta
 
+from services.health.snapshot import get_health_snapshot
+
 # --- Tunable constants -------------------------------------------------------
 RECOVERY_INTENSITY = 0.4
 MIN_INTENSITY = 0.4
@@ -159,3 +161,16 @@ def decide(snapshot, workout_day) -> DailyDecision:
         rationale=rationale, flags=tuple(flags),
         is_override=abs(modifier - 1.0) > 1e-9,
     )
+
+
+def decide_today(user, on_date) -> DailyDecision:
+    """Fetch today's snapshot + planned workout and return the daily decision."""
+    from apps.fitness.models import FitnessPlan, WorkoutDay
+    snapshot = get_health_snapshot(user, on_date)
+    plan = FitnessPlan.objects.filter(user=user, is_active=True).first()
+    workout_day = None
+    if plan is not None:
+        workout_day = WorkoutDay.objects.filter(
+            fitness_plan=plan, day_of_week=on_date.strftime("%A")
+        ).first()
+    return decide(snapshot, workout_day)
