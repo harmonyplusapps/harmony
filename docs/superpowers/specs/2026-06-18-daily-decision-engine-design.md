@@ -184,6 +184,12 @@ The decision is advisory display only — it does not alter `WorkoutLog` or the 
   override; active-recovery card renders when the day is downgraded; intensity note
   renders otherwise.
 
+## Tracked follow-ups
+
+- **Surface `avoid_focus_areas` in the UI.** The engine computes it (sore-but-not-
+  conflicting areas, e.g. core sore on an upper-body day), but the dashboard does not yet
+  display a "go easy on …" note. Add a small hint on the workout card when non-empty.
+
 ## Out of scope
 
 - Deload weeks / progressive overload (slice #4).
