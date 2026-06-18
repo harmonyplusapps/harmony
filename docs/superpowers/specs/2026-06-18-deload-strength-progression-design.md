@@ -111,18 +111,21 @@ dict[int, WeightSuggestion]`:
     `WeightSuggestion` keyed by `ex.id`.
 - Exercises with no weighted history yield `reason == "new"` (suggested weight `None`).
 
-### Part C — Surfacing
+### Part C — Surfacing (on the weekly-plan page)
 
-- The view that renders the exercise-logging list (the one rendering
-  `templates/dashboard/partials/workout_today.html`) calls
-  `suggest_strength_progression(request.user, today_workout, is_deload)` and passes
-  `weight_suggestions` (dict keyed by exercise id) plus `is_deload` to the template.
-  `is_deload` is computed via `is_deload_week` on the active plan's `week_number`.
-- `workout_today.html`: beside each main exercise, when a suggestion exists for `exercise.id`
-  with a non-null weight, render `Suggested: {{ s.suggested_weight_kg }} kg — {{ s.note }}`.
-- `templates/dashboard/weekly_plan.html`: show a "Deload week" badge when
-  `is_deload_week(fitness_plan.week_number)` (the weekly view exposes `week_number`); the
-  view passes an `is_deload` flag.
+`templates/dashboard/partials/workout_today.html` is an orphan partial (no view renders
+it). The live page that already lists each day's exercises **and** exposes `week_number`
+is `templates/dashboard/weekly_plan.html` (via `apps/dashboard/views.py::weekly_plan`), so
+both signals surface there.
+
+- `weekly_plan` view: compute `is_deload = is_deload_week(fitness_plan.week_number)` and a
+  merged `weight_suggestions` dict (keyed by exercise id) by calling
+  `suggest_strength_progression(request.user, workout_day, is_deload)` for each of the
+  plan's workout days; pass both to the template.
+- `weekly_plan.html`: a "Deload" badge beside the "Week N" heading when `is_deload`; a new
+  "Suggested" column in the per-day exercise table showing `{{ s.suggested_weight_kg }} kg`
+  when a suggestion with a non-null weight exists for `ex.id` (reuse the existing
+  `health_extras.get_item` filter for the dict lookup).
 
 ## Error handling & edge cases
 
@@ -152,9 +155,9 @@ dict[int, WeightSuggestion]`:
   a barbell lift → "progress" with +2.5 kg; identity matching across weeks via
   `exercise_cache` and via `custom_name`; a main exercise with no history → "new"; a deload
   week trims the suggestion.
-- **Surfacing view test** — the logging view passes `weight_suggestions` and `is_deload`;
-  the rendered page shows a suggested weight for a lift with history; the weekly-plan view
-  shows the deload badge on a week-4 plan.
+- **Surfacing view test** — the `weekly_plan` view passes `weight_suggestions` and
+  `is_deload`; the rendered page shows a suggested weight for a lift with history; the
+  "Deload" badge appears on a week-4 plan and not on a week-3 plan.
 
 ## Out of scope
 
