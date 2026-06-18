@@ -19,6 +19,8 @@ class SorenessItem:
 
 @dataclass
 class HealthSnapshot:
+    """Read-model of a user's health signals for one day. Treat as immutable:
+    the list fields (soreness, recent_workouts) are not meant to be mutated by callers."""
     date: date
     sleep_hours: Decimal | None
     sleep_quality: int | None
@@ -62,6 +64,7 @@ def get_health_snapshot(user: User, on_date: date) -> HealthSnapshot:
 
     recent_workouts = list(
         WorkoutLog.objects.filter(user=user, completed=True, date__lte=on_date)
+        .select_related("workout_day")
         .order_by("-date")[:3]
     )
 

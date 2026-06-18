@@ -600,3 +600,19 @@ body {
   color: var(--text);
   cursor: pointer;
 }
+
+.cycle-phase {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.cycle-phase strong {
+  color: var(--accent-light);
+}
+
+.period-logged {
+  font-size: 13px;
+  color: var(--green-light);
+  margin: 0;
+}

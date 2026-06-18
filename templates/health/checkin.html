@@ -35,10 +35,15 @@
     {% if tracks_cycle %}
     <fieldset class="checkin-block">
       <legend>Cycle</legend>
+      <p class="cycle-phase">Current phase: <strong>{{ cycle_phase|default:"—" }}</strong></p>
+      {% if period_logged_today %}
+      <p class="period-logged">✓ Period start logged for today</p>
+      {% else %}
       <label class="period-checkbox">
         <input type="checkbox" name="period_started" value="true">
         Period started today
       </label>
+      {% endif %}
     </fieldset>
     {% endif %}
 

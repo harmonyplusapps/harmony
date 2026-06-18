@@ -94,3 +94,35 @@ def test_checkin_post_without_numbers_creates_no_wellnesslog(client, db):
     client.login(username="c", password="testpass123")
     client.post(reverse("health_checkin"), {"soreness_quads": "mild"})
     assert not WellnessLog.objects.filter(user__username="c", date=date.today()).exists()
+
+
+@pytest.mark.django_db
+def test_checkin_ignores_nonnumeric_steps(client, db):
+    _make_user()
+    client.login(username="c", password="testpass123")
+    resp = client.post(reverse("health_checkin"), {"steps": "abc"}, follow=True)
+    assert resp.status_code == 200
+    assert not WellnessLog.objects.filter(user__username="c", date=date.today()).exists()
+
+
+@pytest.mark.django_db
+def test_checkin_shows_current_cycle_phase(client, db):
+    from datetime import timedelta
+    user = _make_user(tracks_cycle=True)
+    PeriodLog.objects.create(user=user, start_date=date.today() - timedelta(days=2))  # day 3 -> period
+    client.login(username="c", password="testpass123")
+    resp = client.get(reverse("health_checkin"))
+    body = resp.content.decode()
+    assert "Current phase" in body
+    assert "period" in body
+
+
+@pytest.mark.django_db
+def test_checkin_shows_period_logged_confirmation_and_hides_checkbox(client, db):
+    user = _make_user(tracks_cycle=True)
+    PeriodLog.objects.create(user=user, start_date=date.today())
+    client.login(username="c", password="testpass123")
+    resp = client.get(reverse("health_checkin"))
+    body = resp.content.decode()
+    assert "Period start logged for today" in body
+    assert "Period started today" not in body
