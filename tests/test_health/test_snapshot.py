@@ -64,6 +64,7 @@ def test_snapshot_assembles_logged_data(user):
 
     snap = get_health_snapshot(user, on)
     assert snap.sleep_hours == 7
+    assert snap.sleep_quality == 4
     assert snap.energy == 8
     assert snap.stress == 3
     assert snap.steps == 9000

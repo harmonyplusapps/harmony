@@ -1,4 +1,8 @@
 from dataclasses import dataclass
+from datetime import date
+from decimal import Decimal
+
+from django.contrib.auth.models import User
 
 from apps.health.models import WellnessLog, SorenessLog, PeriodLog
 from apps.fitness.models import WorkoutLog
@@ -15,20 +19,20 @@ class SorenessItem:
 
 @dataclass
 class HealthSnapshot:
-    date: object
-    sleep_hours: object
-    sleep_quality: object
-    energy: object
-    stress: object
-    soreness: list
-    cycle_phase: object
+    date: date
+    sleep_hours: Decimal | None
+    sleep_quality: int | None
+    energy: int | None
+    stress: int | None
+    soreness: list[SorenessItem]
+    cycle_phase: str | None
     momentum: Momentum
-    steps: object
-    resting_hr: object
-    recent_workouts: list
+    steps: int | None
+    resting_hr: int | None
+    recent_workouts: list[WorkoutLog]
 
 
-def get_health_snapshot(user, on_date):
+def get_health_snapshot(user: User, on_date: date) -> HealthSnapshot:
     """Assemble all health signals for `user` on `on_date`. Missing data -> None/empty."""
     wellness = WellnessLog.objects.filter(user=user, date=on_date).first()
 
@@ -49,6 +53,7 @@ def get_health_snapshot(user, on_date):
                 last_period.start_date, profile.average_cycle_length, on_date,
             )
 
+    # Lightweight date-only projection for momentum; recent_workouts below fetches full rows.
     completed_dates = set(
         WorkoutLog.objects.filter(user=user, completed=True, date__lte=on_date)
         .values_list("date", flat=True)
