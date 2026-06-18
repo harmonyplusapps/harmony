@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 
-from apps.health.models import WellnessLog, SorenessLog, PeriodLog
+from apps.health.models import WellnessLog, SorenessLog, PeriodLog, MUSCLE_GROUP_TO_FOCUS
 from apps.fitness.models import WorkoutLog
 from services.health.calculations import (
     compute_cycle_phase, compute_momentum, Momentum,
@@ -15,6 +15,7 @@ from services.health.calculations import (
 class SorenessItem:
     muscle_group: str
     severity: str
+    focus_area: str
 
 
 @dataclass
@@ -39,7 +40,7 @@ def get_health_snapshot(user: User, on_date: date) -> HealthSnapshot:
     wellness = WellnessLog.objects.filter(user=user, date=on_date).first()
 
     soreness = [
-        SorenessItem(s.muscle_group, s.severity)
+        SorenessItem(s.muscle_group, s.severity, MUSCLE_GROUP_TO_FOCUS[s.muscle_group])
         for s in SorenessLog.objects.filter(user=user, date=on_date)
     ]
 
