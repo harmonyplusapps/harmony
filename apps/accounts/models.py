@@ -47,6 +47,8 @@ class UserProfile(models.Model):
     medical_conditions = models.TextField(blank=True)
     notification_email = models.EmailField()
     onboarding_completed = models.BooleanField(default=False)
+    tracks_cycle = models.BooleanField(default=False)
+    average_cycle_length = models.IntegerField(default=28)
     additional_comments = models.TextField(blank=True)
 
     def __str__(self):

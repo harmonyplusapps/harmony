@@ -1,0 +1,53 @@
+{% extends "base_app.html" %}
+{% load health_extras %}
+{% block title %}Daily Check-in · Harmony{% endblock %}
+{% block content %}
+<section class="checkin-page">
+  <h1 class="page-title">Daily Check-in</h1>
+  <p class="page-subtitle">Takes 15 seconds. Everything is optional.</p>
+
+  <form method="post" action="{% url 'health_checkin' %}" class="checkin-form">
+    {% csrf_token %}
+
+    <fieldset class="checkin-block">
+      <legend>Sore anywhere today?</legend>
+      <div class="soreness-grid">
+        {% for group, label in muscle_groups %}
+        <div class="soreness-item">
+          <span class="soreness-label">{{ label }}</span>
+          <select name="soreness_{{ group }}" class="soreness-select">
+            <option value="">No</option>
+            {% for value, slabel in severities %}
+            <option value="{{ value }}" {% if soreness|get_item:group == value %}selected{% endif %}>{{ slabel }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="checkin-block">
+      <legend>Numbers (if you know them)</legend>
+      <label>Steps <input type="number" name="steps" value="{{ steps }}" min="0"></label>
+      <label>Resting HR (bpm) <input type="number" name="resting_hr_bpm" value="{{ resting_hr_bpm }}" min="0"></label>
+    </fieldset>
+
+    {% if tracks_cycle %}
+    <fieldset class="checkin-block">
+      <legend>Cycle</legend>
+      <p class="cycle-phase">Current phase: <strong>{{ cycle_phase|default:"—" }}</strong></p>
+      {% if period_logged_today %}
+      <p class="period-logged">✓ Period start logged for today</p>
+      {% else %}
+      <label class="period-checkbox">
+        <input type="checkbox" name="period_started" value="true">
+        Period started today
+      </label>
+      {% endif %}
+    </fieldset>
+    {% endif %}
+
+    <button type="submit" class="btn-primary">Save check-in</button>
+  </form>
+</section>
+{% endblock %}

@@ -45,6 +45,9 @@
     <a href="{% url 'profile_edit' %}"
        class="nav-item {% if request.resolver_match.url_name == 'profile_edit' %}active{% endif %}"
        title="Profile">👤</a>
+    <a href="{% url 'health_checkin' %}"
+       class="nav-item {% if request.resolver_match.url_name == 'health_checkin' %}active{% endif %}"
+       title="Daily Check-in">📝</a>
     <div class="nav-spacer"></div>
     <form method="post" action="{% url 'logout' %}">
       {% csrf_token %}

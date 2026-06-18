@@ -87,9 +87,55 @@ class WellnessLog(models.Model):
     mindfulness_done = models.BooleanField(default=False)
     mindfulness_duration_minutes = models.IntegerField(null=True, blank=True)
     mindfulness_type = models.CharField(max_length=20, choices=MINDFULNESS_TYPE_CHOICES, blank=True)
+    steps = models.IntegerField(null=True, blank=True)
+    resting_hr_bpm = models.IntegerField(null=True, blank=True)
     notes = models.TextField(blank=True)
     additional_comments = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ["user", "date"]
+
+
+class SorenessLog(models.Model):
+    MUSCLE_GROUP_CHOICES = [
+        ("chest", "Chest"), ("back", "Back"), ("shoulders", "Shoulders"),
+        ("arms", "Arms"), ("core", "Core"), ("glutes", "Glutes"),
+        ("quads", "Quads"), ("hamstrings", "Hamstrings"), ("calves", "Calves"),
+    ]
+    SEVERITY_CHOICES = [("mild", "Mild"), ("moderate", "Moderate"), ("severe", "Severe")]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="soreness_logs")
+    date = models.DateField()
+    muscle_group = models.CharField(max_length=20, choices=MUSCLE_GROUP_CHOICES)
+    severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["user", "date", "muscle_group"]
+        ordering = ["date", "muscle_group"]
+
+
+class PeriodLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="period_logs")
+    start_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["user", "start_date"]
+        ordering = ["-start_date"]
+
+
+# Maps each soreness muscle group to the WorkoutDay.focus_area it belongs to,
+# so the decision engine can match logged soreness against a planned focus.
+MUSCLE_GROUP_TO_FOCUS = {
+    "chest": "upper_body",
+    "back": "upper_body",
+    "shoulders": "upper_body",
+    "arms": "upper_body",
+    "core": "core",
+    "glutes": "lower_body",
+    "quads": "lower_body",
+    "hamstrings": "lower_body",
+    "calves": "lower_body",
+}
