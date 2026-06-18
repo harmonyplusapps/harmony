@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from apps.fitness.models import FitnessPlan, WorkoutDay, WorkoutLog
 from apps.health.models import HealthPlan, MealPlan, WellnessLog
-from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION
+from services.coach.engine import decide, ACTIVE_RECOVERY_SUGGESTION
+from services.health.snapshot import get_health_snapshot
 
 
 @login_required
@@ -31,8 +32,8 @@ def dashboard(request):
                 defaults={"date": today},
             )
 
-    decision = decide_today(request.user, today)
-    intensity_pct = round(decision.intensity_modifier * 100)
+    decision = decide(get_health_snapshot(request.user, today), today_workout)
+    intensity_pct = round(decision.intensity_modifier * 100)  # always an int
 
     today_meals = []
     if health_plan:

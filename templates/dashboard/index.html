@@ -56,6 +56,7 @@
   {% if decision.is_override %}
   <div class="coach-banner">🧭 Today's call: {{ decision.rationale }}</div>
   {% endif %}
+  {# Recovery card only when the engine downgraded a non-recovery day. #}
   {% if decision.recommended_day_type == "active_recovery" and decision.planned_day_type != "active_recovery" %}
   <div class="card active-recovery-card">
     <div class="content-card">

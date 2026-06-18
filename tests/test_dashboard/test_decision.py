@@ -63,3 +63,19 @@ def test_dashboard_clean_day_no_banner(client):
     client.login(username="dv", password="testpass123")
     resp = client.get(reverse("dashboard"))
     assert "coach-banner" not in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_dashboard_shows_intensity_hint_on_low_energy_override(client):
+    from apps.health.models import WellnessLog
+    user = _user()
+    _plan_today(user, focus_area="upper_body")
+    WellnessLog.objects.create(
+        user=user, date=date.today(), sleep_hours=8, sleep_quality=4,
+        mood_score=5, stress_level=4, energy_level=2,
+    )
+    client.login(username="dv", password="testpass123")
+    resp = client.get(reverse("dashboard"))
+    body = resp.content.decode()
+    assert "coach-banner" in body
+    assert "70% load" in body
