@@ -53,12 +53,26 @@
 </div>
 {% else %}
 <div class="cards-list">
+  {% if decision.is_override %}
+  <div class="coach-banner">🧭 Today's call: {{ decision.rationale }}</div>
+  {% endif %}
+  {% if decision.recommended_day_type == "active_recovery" and decision.planned_day_type != "active_recovery" %}
+  <div class="card active-recovery-card">
+    <div class="content-card">
+      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🧘</div>
+      <div>
+        <div class="card-title">Active Recovery</div>
+        <div class="card-sub">{{ active_recovery_suggestion }}</div>
+      </div>
+    </div>
+  </div>
+  {% else %}
   <div class="card">
     <div class="content-card">
       <div class="card-icon" style="background:rgba(108,99,255,0.15)">🏋️</div>
       <div>
         <div class="card-title">{% if today_workout %}{{ today_workout.day_type|title }} · {{ today_workout.focus_area|title }}{% else %}Rest Day{% endif %}</div>
-        <div class="card-sub">{% if today_workout %}{{ today_workout.estimated_duration_minutes }} min{% else %}Recovery &amp; mobility{% endif %}</div>
+        <div class="card-sub">{% if today_workout %}{{ today_workout.estimated_duration_minutes }} min{% if decision.is_override and intensity_pct != 100 %} · aim ~{{ intensity_pct }}% load{% endif %}{% else %}Recovery &amp; mobility{% endif %}</div>
       </div>
       {% if today_workout %}
         {% if workout_log.completed %}
@@ -69,6 +83,7 @@
       {% endif %}
     </div>
   </div>
+  {% endif %}
   <div class="card">
     <div class="content-card">
       <div class="card-icon" style="background:rgba(34,197,94,0.15)">🥗</div>
