@@ -95,7 +95,8 @@ def weekly_plan(request):
         return redirect("onboarding_step1")
 
     DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    today_name = date.today().strftime("%A")
+    today = date.today()
+    today_name = today.strftime("%A")
 
     fitness_plan = FitnessPlan.objects.filter(user=request.user, is_active=True).first()
     health_plan = HealthPlan.objects.filter(user=request.user, is_active=True).first()
@@ -129,7 +130,7 @@ def weekly_plan(request):
         ]
 
         is_deload = is_deload_week(fitness_plan.week_number)
-        weekly_mileage_km = suggest_weekly_mileage_for(request.user, date.today(), is_deload)
+        weekly_mileage_km = suggest_weekly_mileage_for(request.user, today, is_deload)
         for wd in workout_days.values():
             if wd.day_type == "strength":
                 weight_suggestions.update(

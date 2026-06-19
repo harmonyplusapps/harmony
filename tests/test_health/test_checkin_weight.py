@@ -50,3 +50,23 @@ def test_checkin_shows_step_target(client):
     resp = client.get(reverse("health_checkin"))
     assert resp.context["step_target"] == 8500
     assert "8500" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_checkin_reweigh_updates_same_day_log(client):
+    _user()
+    client.login(username="cw", password="testpass123")
+    client.post(reverse("health_checkin"), {"weight_kg": "64.5"})
+    client.post(reverse("health_checkin"), {"weight_kg": "64.0"})
+    logs = WeightLog.objects.filter(user__username="cw", date=date.today())
+    assert logs.count() == 1
+    assert logs.first().weight_kg == Decimal("64.0")
+
+
+@pytest.mark.django_db
+def test_checkin_invalid_weight_ignored(client):
+    _user()
+    client.login(username="cw", password="testpass123")
+    resp = client.post(reverse("health_checkin"), {"weight_kg": "abc"}, follow=True)
+    assert resp.status_code == 200
+    assert not WeightLog.objects.filter(user__username="cw", date=date.today()).exists()

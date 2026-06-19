@@ -13,7 +13,7 @@ TREND_EPSILON = 0.2  # kg; smaller weekly changes read as "flat"
 class WeightTrend:
     current_avg: float
     prior_avg: float | None
-    delta_kg: float | None   # signed: current_avg - prior_avg
+    delta_kg: float | None   # signed (current-prior); None only when no prior window (then direction == "flat")
     direction: str           # down | up | flat
 
 
