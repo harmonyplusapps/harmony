@@ -31,7 +31,7 @@ CYCLE_MULTIPLIER = {
 }
 
 
-def is_deload_week(week_number) -> bool:
+def is_deload_week(week_number: int | None) -> bool:
     return bool(week_number) and week_number % DELOAD_CYCLE_WEEKS == 0
 
 
@@ -180,22 +180,24 @@ def decide(snapshot, workout_day, is_deload=False) -> DailyDecision:
 _UNSET = object()
 
 
-def decide_today(user, on_date, workout_day=_UNSET) -> DailyDecision:
+def decide_today(user, on_date, workout_day=_UNSET, is_deload=None) -> DailyDecision:
     """Fetch today's snapshot + planned workout and return the daily decision.
 
     Pass `workout_day` (possibly None) to reuse an already-resolved WorkoutDay and
-    skip the workout query; omit it to have this function resolve today's
-    active-plan workout itself. The active plan is always read once for its
-    week number (deload detection).
+    `is_deload` to reuse an already-known deload flag; either omission causes this
+    function to read the active plan (for workout resolution and/or its week number).
     """
     from apps.fitness.models import FitnessPlan, WorkoutDay
     snapshot = get_health_snapshot(user, on_date)
-    plan = FitnessPlan.objects.filter(user=user, is_active=True).first()
+    plan = None
+    if workout_day is _UNSET or is_deload is None:
+        plan = FitnessPlan.objects.filter(user=user, is_active=True).first()
     if workout_day is _UNSET:
         workout_day = None
         if plan is not None:
             workout_day = WorkoutDay.objects.filter(
                 fitness_plan=plan, day_of_week=on_date.strftime("%A")
             ).first()
-    is_deload = is_deload_week(plan.week_number) if plan is not None else False
+    if is_deload is None:
+        is_deload = is_deload_week(plan.week_number) if plan is not None else False
     return decide(snapshot, workout_day, is_deload=is_deload)

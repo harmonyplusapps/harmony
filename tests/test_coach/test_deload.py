@@ -38,6 +38,7 @@ def test_is_deload_week():
     assert is_deload_week(8) is True
     assert is_deload_week(12) is True
     assert is_deload_week(0) is False
+    assert is_deload_week(None) is False
 
 
 def test_deload_applies_intensity_flag_and_rationale():
@@ -86,6 +87,7 @@ def _plan(user, week_number):
     plan = FitnessPlan.objects.create(
         user=user, week_number=week_number, start_date=today, end_date=today,
         total_workout_days=1, weekly_goal_summary="g", claude_reasoning="r",
+        is_active=True,
     )
     WorkoutDay.objects.create(
         fitness_plan=plan, date=today, day_of_week=today.strftime("%A"),

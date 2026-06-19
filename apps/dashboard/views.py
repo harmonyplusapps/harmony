@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from apps.fitness.models import FitnessPlan, WorkoutDay, WorkoutLog
 from apps.health.models import HealthPlan, MealPlan, WellnessLog
-from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION
+from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION, is_deload_week
 
 
 @login_required
@@ -31,7 +31,8 @@ def dashboard(request):
                 defaults={"date": today},
             )
 
-    decision = decide_today(request.user, today, workout_day=today_workout)
+    is_deload = is_deload_week(fitness_plan.week_number) if fitness_plan else False
+    decision = decide_today(request.user, today, workout_day=today_workout, is_deload=is_deload)
     intensity_pct = round(decision.intensity_modifier * 100)  # always an int
 
     today_meals = []
