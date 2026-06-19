@@ -110,6 +110,21 @@
   </div>
 </div>
 
+{% if weight_trend or step_target %}
+<div class="card" style="margin-top:10px;">
+  <div class="content-card">
+    <div class="card-icon" style="background:rgba(52,211,153,0.15)">📈</div>
+    <div>
+      {% if weight_trend %}
+      <div class="card-title">Weight {{ weight_trend.current_avg }} kg{% if weight_trend.delta_kg is not None %}
+        {% if weight_trend.direction == "down" %}· ▼ {{ weight_trend.delta_kg|floatformat:1|cut:"-" }} kg vs last week{% elif weight_trend.direction == "up" %}· ▲ {{ weight_trend.delta_kg|floatformat:1 }} kg vs last week{% else %}· ≈ steady{% endif %}{% endif %}</div>
+      {% endif %}
+      {% if step_target %}<div class="card-sub">Today's step goal: {{ step_target }}</div>{% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <div class="section-header">
   <span class="section-title">Weekly Progress</span>
   <span style="font-size:13px;font-weight:800;color:#a78bfa">{{ completed_days }} / {{ planned_days }} days</span>
