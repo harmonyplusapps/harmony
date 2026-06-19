@@ -13,6 +13,9 @@ POOR_SLEEP_HOURS = 6     # sleep_hours
 LOW_ENERGY = 3           # energy is 1-10
 PUSH_STREAK = 3          # consecutive days to start nudging harder
 OVERTRAIN_STREAK = 5     # consecutive days to flag overtraining watch
+DELOAD_CYCLE_WEEKS = 4   # every 4th week is a deload week
+DELOAD_MULTIPLIER = 0.8  # -20% intensity on a deload week
+DELOAD_RATIONALE = "Deload week — lighter loads, trim your sets ~40% to recover."
 
 # --- User-facing strings -----------------------------------------------------
 ACTIVE_RECOVERY_SUGGESTION = "20–30 min easy walk plus full-body mobility and light stretching."
@@ -26,6 +29,10 @@ MOMENTUM_MULTIPLIER = {
 CYCLE_MULTIPLIER = {
     "luteal": 0.85, "period": 0.85, "follicular": 1.1, "ovulation": 1.1,
 }
+
+
+def is_deload_week(week_number) -> bool:
+    return bool(week_number) and week_number % DELOAD_CYCLE_WEEKS == 0
 
 
 @dataclass(frozen=True)
@@ -90,7 +97,7 @@ def _poor_sleep(snapshot) -> bool:
     return False
 
 
-def decide(snapshot, workout_day) -> DailyDecision:
+def decide(snapshot, workout_day, is_deload=False) -> DailyDecision:
     planned = workout_day.day_type if workout_day else None
     avoid = _sore_focus_areas(snapshot)
 
@@ -148,9 +155,15 @@ def decide(snapshot, workout_day) -> DailyDecision:
     if streak >= OVERTRAIN_STREAK:
         flags.append("overtraining_watch")
 
+    if is_deload:
+        modifier *= DELOAD_MULTIPLIER
+        flags.append("deload")
+
     modifier = round(max(MIN_INTENSITY, min(MAX_INTENSITY, modifier)), 3)
 
-    if candidates:
+    if is_deload:
+        rationale = DELOAD_RATIONALE
+    elif candidates:
         # Tie on deviation: appearance order wins (energy > momentum > cycle > streak).
         rationale = max(candidates, key=lambda c: abs(c[0] - 1.0))[1]
     else:
@@ -171,16 +184,18 @@ def decide_today(user, on_date, workout_day=_UNSET) -> DailyDecision:
     """Fetch today's snapshot + planned workout and return the daily decision.
 
     Pass `workout_day` (possibly None) to reuse an already-resolved WorkoutDay and
-    skip the plan/workout queries; omit it to have this function resolve today's
-    active-plan workout itself.
+    skip the workout query; omit it to have this function resolve today's
+    active-plan workout itself. The active plan is always read once for its
+    week number (deload detection).
     """
     from apps.fitness.models import FitnessPlan, WorkoutDay
     snapshot = get_health_snapshot(user, on_date)
+    plan = FitnessPlan.objects.filter(user=user, is_active=True).first()
     if workout_day is _UNSET:
-        plan = FitnessPlan.objects.filter(user=user, is_active=True).first()
         workout_day = None
         if plan is not None:
             workout_day = WorkoutDay.objects.filter(
                 fitness_plan=plan, day_of_week=on_date.strftime("%A")
             ).first()
-    return decide(snapshot, workout_day)
+    is_deload = is_deload_week(plan.week_number) if plan is not None else False
+    return decide(snapshot, workout_day, is_deload=is_deload)
