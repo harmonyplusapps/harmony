@@ -118,3 +118,34 @@ def test_deload_trims_suggestion():
     s = suggest_strength_progression(user, cwd, is_deload=True)[cex.id]
     assert s.reason == "deload"
     assert s.suggested_weight_kg == 25.0  # 30*0.8=24 -> nearest 2.5
+
+
+@pytest.mark.django_db
+def test_hold_with_single_prior_session():
+    user = _user()
+    _session(user, [50, 50, 50], days_ago=7, custom_name="Row")
+    cwd, cex = _current(user, custom_name="Row")
+    s = suggest_strength_progression(user, cwd, is_deload=False)[cex.id]
+    assert s.reason == "hold"
+    assert s.suggested_weight_kg == 50.0
+
+
+@pytest.mark.django_db
+def test_new_when_history_is_weightless():
+    user = _user()
+    _session(user, [], days_ago=7, custom_name="Plank")
+    cwd, cex = _current(user, custom_name="Plank")
+    s = suggest_strength_progression(user, cwd, is_deload=False)[cex.id]
+    assert s.reason == "new"
+    assert s.suggested_weight_kg is None
+
+
+@pytest.mark.django_db
+def test_other_users_history_does_not_leak():
+    user = _user("a")
+    other = _user("b")
+    _session(other, [100, 100, 100], days_ago=14, custom_name="Goblet Squat")
+    _session(other, [100, 100, 100], days_ago=7, custom_name="Goblet Squat")
+    cwd, cex = _current(user, custom_name="Goblet Squat")
+    s = suggest_strength_progression(user, cwd, is_deload=False)[cex.id]
+    assert s.reason == "new"

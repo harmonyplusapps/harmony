@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 
 INCREMENT_KG = 2.5  # default progression step (metric); tunable
@@ -12,12 +13,13 @@ class WeightSuggestion:
 
 
 def round_to_increment(weight: float, increment: float) -> float:
-    return round(round(weight / increment) * increment, 2)
+    # Round half up (gym convention), not Python's banker's rounding.
+    return round(math.floor(weight / increment + 0.5) * increment, 2)
 
 
 def working_weight(weight_kg: list) -> float | None:
     """Top working set for a session, or None when nothing was logged."""
-    return float(max(weight_kg)) if weight_kg else None
+    return float(max(float(v) for v in weight_kg)) if weight_kg else None
 
 
 def met_target(sets_completed: int, reps_completed: list, skipped: bool,
@@ -31,7 +33,7 @@ def met_target(sets_completed: int, reps_completed: list, skipped: bool,
     return all(r >= prescribed_reps for r in reps_completed)
 
 
-def suggest_next_weight(sessions, increment_kg, is_deload):
+def suggest_next_weight(sessions: list[tuple[float, bool]], increment_kg, is_deload):
     """Decide next weight from one exercise's history (oldest -> newest), each
     session a (working_weight, met_target) tuple. Returns (weight|None, reason, note)."""
     if not sessions:
@@ -65,11 +67,18 @@ def suggest_strength_progression(user, workout_day, is_deload):
                 workout_log__user=user,
                 workout_exercise__exercise_cache_id=ex.exercise_cache_id,
             )
-        else:
+        elif ex.custom_name:
             logs = ExerciseLog.objects.filter(
                 workout_log__user=user,
                 workout_exercise__custom_name=ex.custom_name,
             )
+        else:
+            # No identity (no cache link, no name) -> cannot match history.
+            suggestions[ex.id] = WeightSuggestion(
+                exercise_id=ex.id, suggested_weight_kg=None, reason="new",
+                note="Log a few sessions and I'll start suggesting loads.",
+            )
+            continue
         logs = logs.select_related("workout_exercise").order_by("workout_log__date")
 
         sessions = []
