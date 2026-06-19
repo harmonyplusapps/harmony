@@ -1,11 +1,13 @@
 from datetime import date
+from decimal import Decimal, InvalidOperation
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.db import transaction
 from django.views.decorators.http import require_POST
-from .models import NutritionLog, WellnessLog, SorenessLog, PeriodLog
+from .models import NutritionLog, WellnessLog, SorenessLog, PeriodLog, WeightLog
 from services.health.snapshot import get_health_snapshot
+from services.coach.cardio import suggest_step_target_for
 
 
 @login_required
@@ -58,12 +60,20 @@ def _parse_optional_int(value):
         return None
 
 
+def _parse_optional_decimal(value):
+    try:
+        return Decimal(value) if value not in (None, "") else None
+    except (InvalidOperation, TypeError):
+        return None
+
+
 @login_required
 def checkin(request):
     today = date.today()
     if request.method == "POST":
         steps = _parse_optional_int(request.POST.get("steps"))
         resting_hr = _parse_optional_int(request.POST.get("resting_hr_bpm"))
+        weight = _parse_optional_decimal(request.POST.get("weight_kg"))
         with transaction.atomic():
             # Replace today's soreness with whatever groups were submitted.
             SorenessLog.objects.filter(user=request.user, date=today).delete()
@@ -83,6 +93,11 @@ def checkin(request):
                 log.steps = steps
                 log.resting_hr_bpm = resting_hr
                 log.save()
+
+            if weight is not None:
+                WeightLog.objects.update_or_create(
+                    user=request.user, date=today, defaults={"weight_kg": weight},
+                )
 
             if request.POST.get("period_started") == "true" and request.user.profile.tracks_cycle:
                 PeriodLog.objects.get_or_create(user=request.user, start_date=today)
@@ -106,6 +121,7 @@ def _checkin_context(request, today):
         tracks_cycle
         and PeriodLog.objects.filter(user=request.user, start_date=today).exists()
     )
+    weight_log = WeightLog.objects.filter(user=request.user, date=today).first()
     return {
         "muscle_groups": SorenessLog.MUSCLE_GROUP_CHOICES,
         "severities": SorenessLog.SEVERITY_CHOICES,
@@ -115,4 +131,6 @@ def _checkin_context(request, today):
         "tracks_cycle": tracks_cycle,
         "cycle_phase": cycle_phase,
         "period_logged_today": period_logged_today,
+        "weight_kg": weight_log.weight_kg if weight_log else "",
+        "step_target": suggest_step_target_for(request.user, today),
     }

@@ -28,8 +28,9 @@
 
     <fieldset class="checkin-block">
       <legend>Numbers (if you know them)</legend>
-      <label>Steps <input type="number" name="steps" value="{{ steps }}" min="0"></label>
+      <label>Steps <input type="number" name="steps" value="{{ steps }}" min="0">{% if step_target %} <span class="step-target">goal {{ step_target }}</span>{% endif %}</label>
       <label>Resting HR (bpm) <input type="number" name="resting_hr_bpm" value="{{ resting_hr_bpm }}" min="0"></label>
+      <label>Weight (kg) <input type="number" step="0.1" name="weight_kg" value="{{ weight_kg }}" min="0"></label>
     </fieldset>
 
     {% if tracks_cycle %}
