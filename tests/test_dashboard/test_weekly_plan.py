@@ -101,6 +101,8 @@ def test_weekly_plan_shows_no_plan_message(client, complete_profile):
     resp = client.get(reverse("weekly_plan"))
     assert resp.status_code == 200
     assert "No active plan" in resp.content.decode()
+    assert resp.context["is_deload"] is False
+    assert resp.context["weight_suggestions"] == {}
 
 
 @pytest.mark.django_db

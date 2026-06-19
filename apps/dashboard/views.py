@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from apps.fitness.models import FitnessPlan, WorkoutDay, WorkoutLog
 from apps.health.models import HealthPlan, MealPlan, WellnessLog
-from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION
+from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION, is_deload_week
+from services.coach.progression import suggest_strength_progression
 
 
 @login_required
@@ -31,7 +32,8 @@ def dashboard(request):
                 defaults={"date": today},
             )
 
-    decision = decide_today(request.user, today, workout_day=today_workout)
+    is_deload = is_deload_week(fitness_plan.week_number) if fitness_plan else False
+    decision = decide_today(request.user, today, workout_day=today_workout, is_deload=is_deload)
     intensity_pct = round(decision.intensity_modifier * 100)  # always an int
 
     today_meals = []
@@ -92,6 +94,9 @@ def weekly_plan(request):
     fitness_plan = FitnessPlan.objects.filter(user=request.user, is_active=True).first()
     health_plan = HealthPlan.objects.filter(user=request.user, is_active=True).first()
 
+    is_deload = False
+    weight_suggestions = {}
+
     days = []
     if fitness_plan:
         workout_days = {
@@ -116,10 +121,19 @@ def weekly_plan(request):
             for day in DAYS
         ]
 
+        is_deload = is_deload_week(fitness_plan.week_number)
+        for wd in workout_days.values():
+            if wd.day_type == "strength":
+                weight_suggestions.update(
+                    suggest_strength_progression(request.user, wd, is_deload)
+                )
+
     return render(request, "dashboard/weekly_plan.html", {
         "profile": profile,
         "fitness_plan": fitness_plan,
         "health_plan": health_plan,
         "days": days,
         "today_name": today_name,
+        "is_deload": is_deload,
+        "weight_suggestions": weight_suggestions,
     })
