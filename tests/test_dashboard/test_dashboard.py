@@ -102,3 +102,23 @@ def test_dashboard_renders_no_plan_message_when_no_plan(client, onboarded_user):
     client.login(username="dashuser", password="testpass123")
     resp = client.get(reverse("dashboard"))
     assert "No plan yet" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_dashboard_shows_deload_banner_on_week_4(client, onboarded_user):
+    from datetime import date
+    from apps.fitness.models import FitnessPlan, WorkoutDay
+    today = date.today()
+    plan = FitnessPlan.objects.create(
+        user=onboarded_user, week_number=4, start_date=today, end_date=today,
+        is_active=True, total_workout_days=1, weekly_goal_summary="g", claude_reasoning="r",
+    )
+    WorkoutDay.objects.create(
+        fitness_plan=plan, date=today, day_of_week=today.strftime("%A"),
+        day_type="strength", focus_area="upper_body", estimated_duration_minutes=45,
+    )
+    client.login(username="dashuser", password="testpass123")
+    resp = client.get(reverse("dashboard"))
+    body = resp.content.decode()
+    assert "coach-banner" in body
+    assert "Deload week" in body

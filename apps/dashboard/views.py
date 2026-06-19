@@ -123,9 +123,10 @@ def weekly_plan(request):
 
         is_deload = is_deload_week(fitness_plan.week_number)
         for wd in workout_days.values():
-            weight_suggestions.update(
-                suggest_strength_progression(request.user, wd, is_deload)
-            )
+            if wd.day_type == "strength":
+                weight_suggestions.update(
+                    suggest_strength_progression(request.user, wd, is_deload)
+                )
 
     return render(request, "dashboard/weekly_plan.html", {
         "profile": profile,
