@@ -48,3 +48,44 @@ def suggest_next_weight(sessions, increment_kg, is_deload):
         return (round_to_increment(current * 0.9, increment_kg), "backoff",
                 "Two tough sessions — drop 10% and rebuild.")
     return (current, "hold", "Stay here and nail all your sets.")
+
+
+def suggest_strength_progression(user, workout_day, is_deload):
+    """Map each main-section weighted exercise on `workout_day` to a WeightSuggestion,
+    using this user's prior ExerciseLog history for the same exercise identity."""
+    from apps.fitness.models import ExerciseLog
+
+    suggestions = {}
+    main_exercises = workout_day.exercises.filter(
+        section="main", sets__isnull=False, reps__isnull=False,
+    )
+    for ex in main_exercises:
+        if ex.exercise_cache_id is not None:
+            logs = ExerciseLog.objects.filter(
+                workout_log__user=user,
+                workout_exercise__exercise_cache_id=ex.exercise_cache_id,
+            )
+        else:
+            logs = ExerciseLog.objects.filter(
+                workout_log__user=user,
+                workout_exercise__custom_name=ex.custom_name,
+            )
+        logs = logs.select_related("workout_exercise").order_by("workout_log__date")
+
+        sessions = []
+        for log in logs:
+            w = working_weight(log.weight_kg)
+            if w is None:
+                continue
+            we = log.workout_exercise
+            sessions.append((
+                w,
+                met_target(log.sets_completed, log.reps_completed, log.skipped,
+                           we.sets or 0, we.reps or 0),
+            ))
+
+        weight, reason, note = suggest_next_weight(sessions, INCREMENT_KG, is_deload)
+        suggestions[ex.id] = WeightSuggestion(
+            exercise_id=ex.id, suggested_weight_kg=weight, reason=reason, note=note,
+        )
+    return suggestions
