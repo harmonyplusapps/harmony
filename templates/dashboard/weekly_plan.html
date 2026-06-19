@@ -87,7 +87,7 @@
               {% if ex.distance_km %}{{ ex.distance_km }}km{% endif %}
             </td>
             <td>{{ ex.intensity }}</td>
-            <td>{% with s=weight_suggestions|get_item:ex.id %}{% if s and s.suggested_weight_kg %}{{ s.suggested_weight_kg }} kg{% endif %}{% endwith %}</td>
+            <td>{% with s=weight_suggestions|get_item:ex.id %}{% if s and s.suggested_weight_kg %}{{ s.suggested_weight_kg|floatformat:"-1" }} kg{% endif %}{% endwith %}</td>
             <td>{{ ex.notes }}</td>
           </tr>
           {% endfor %}

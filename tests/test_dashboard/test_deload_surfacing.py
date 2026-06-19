@@ -85,4 +85,4 @@ def test_weekly_plan_shows_weight_suggestion(client):
     resp = client.get(reverse("weekly_plan"))
     assert "weight_suggestions" in resp.context
     assert resp.context["weight_suggestions"][ex.id].suggested_weight_kg == 40.0
-    assert "40.0 kg" in resp.content.decode()
+    assert "40 kg" in resp.content.decode()
