@@ -1,4 +1,5 @@
 {% extends "base_app.html" %}
+{% load health_extras %}
 {% block title %}Weekly Plan — Harmony{% endblock %}
 {% block content %}
 
@@ -8,7 +9,7 @@
 {% else %}
 
 <div style="margin-bottom:16px;">
-  <h1 style="font-size:18px;font-weight:800;color:#fff;margin-bottom:4px;">Week {{ fitness_plan.week_number }}</h1>
+  <h1 style="font-size:18px;font-weight:800;color:#fff;margin-bottom:4px;">Week {{ fitness_plan.week_number }}{% if is_deload %} <span class="deload-badge">Deload</span>{% endif %}</h1>
   <p style="font-size:12px;color:#555;">{{ fitness_plan.start_date }} – {{ fitness_plan.end_date }}</p>
 </div>
 
@@ -73,7 +74,7 @@
       {% if day.workout.exercises.all %}
       <table class="exercise-table">
         <thead>
-          <tr><th>Exercise</th><th>Section</th><th>Volume</th><th>Intensity</th><th>Notes</th></tr>
+          <tr><th>Exercise</th><th>Section</th><th>Volume</th><th>Intensity</th><th>Suggested</th><th>Notes</th></tr>
         </thead>
         <tbody>
           {% for ex in day.workout.exercises.all %}
@@ -86,6 +87,7 @@
               {% if ex.distance_km %}{{ ex.distance_km }}km{% endif %}
             </td>
             <td>{{ ex.intensity }}</td>
+            <td>{% with s=weight_suggestions|get_item:ex.id %}{% if s and s.suggested_weight_kg %}{{ s.suggested_weight_kg }} kg{% endif %}{% endwith %}</td>
             <td>{{ ex.notes }}</td>
           </tr>
           {% endfor %}
