@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from datetime import timedelta
 
@@ -17,7 +18,8 @@ class WeightTrend:
 
 
 def round_to_500(value: int) -> int:
-    return round(value / STEP_INCREMENT) * STEP_INCREMENT
+    # Round half up (consistent with progression.round_to_increment), not banker's rounding.
+    return math.floor(value / STEP_INCREMENT + 0.5) * STEP_INCREMENT
 
 
 def suggest_step_target(recent_avg_steps: int | None) -> int | None:
@@ -52,6 +54,7 @@ def weight_trend(current_avg: float, prior_avg: float | None,
 
 
 def suggest_step_target_for(user, on_date):
+    """Suggest a daily step goal from the user's trailing-7-day average; None if no steps logged."""
     from apps.health.models import WellnessLog
     window_start = on_date - timedelta(days=7)
     steps = list(
@@ -61,16 +64,18 @@ def suggest_step_target_for(user, on_date):
     )
     if not steps:
         return None
-    return suggest_step_target(int(sum(steps) / len(steps)))
+    return suggest_step_target(round(sum(steps) / len(steps)))
 
 
 def suggest_weekly_mileage_for(user, on_date, is_deload):
+    """Suggest next week's running mileage from the user's completed runs in the trailing 7 days; None if none."""
     from apps.fitness.models import RunningStrategy
     window_start = on_date - timedelta(days=7)
     distances = RunningStrategy.objects.filter(
         workout_day__fitness_plan__user=user,
         workout_day__date__gt=window_start,
         workout_day__date__lte=on_date,
+        workout_day__logs__user=user,
         workout_day__logs__completed=True,
     ).values_list("total_distance_km", flat=True)
     total = float(sum(distances)) if distances else 0.0
@@ -78,6 +83,7 @@ def suggest_weekly_mileage_for(user, on_date, is_deload):
 
 
 def body_weight_trend(user, on_date):
+    """Weekly-average body-weight trend (current 7d vs prior 7d); None with <2 current-window logs."""
     from apps.health.models import WeightLog
     current_start = on_date - timedelta(days=7)
     prior_start = on_date - timedelta(days=14)

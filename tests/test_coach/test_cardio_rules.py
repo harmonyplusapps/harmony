@@ -8,6 +8,7 @@ def test_round_to_500():
     assert round_to_500(8200) == 8000
     assert round_to_500(8300) == 8500
     assert round_to_500(0) == 0
+    assert round_to_500(8250) == 8500   # half up, not banker's rounding
 
 
 def test_suggest_step_target_none_when_no_data():

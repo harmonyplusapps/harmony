@@ -125,3 +125,20 @@ def test_body_weight_trend_excludes_other_users():
     _weight(other, 1, 90.0)
     _weight(other, 2, 91.0)
     assert body_weight_trend(user, TODAY) is None
+
+
+@pytest.mark.django_db
+def test_step_target_excludes_other_users():
+    user = _user("a")
+    other = _user("b")
+    _steps(other, 1, 12000)
+    _steps(other, 2, 12000)
+    assert suggest_step_target_for(user, TODAY) is None
+
+
+@pytest.mark.django_db
+def test_step_target_excludes_exactly_7_days_ago():
+    user = _user()
+    _steps(user, 7, 3000)   # exactly at the lower bound -> excluded (date__gt)
+    _steps(user, 6, 8000)   # included
+    assert suggest_step_target_for(user, TODAY) == 8500
