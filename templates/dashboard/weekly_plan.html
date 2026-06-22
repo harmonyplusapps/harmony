@@ -67,7 +67,7 @@
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div>
           <span style="font-size:13px;font-weight:700;color:#e0e0f0;">{{ day.workout.day_type|title }}</span>
-          <span style="font-size:11px;color:#555;margin-left:8px;">{{ day.workout.focus_area|title }} · {{ day.workout.estimated_duration_minutes }} min</span>
+          <span style="font-size:11px;color:#555;margin-left:8px;">{{ day.workout.focus_area|title }} · {{ day.workout.estimated_duration_minutes }} min{% if general_fitness.duration_bump_min and day.workout.day_type in duration_bump_types %} <span style="color:#34d399;font-weight:700;">+{{ general_fitness.duration_bump_min }} min suggested</span>{% endif %}</span>
         </div>
       </div>
 
@@ -106,6 +106,7 @@
         {{ rs.total_distance_km }}km · {{ rs.total_duration_minutes }} min · Pace: {{ rs.pace_target }}
         {% if rs.heart_rate_zone %} · HR: {{ rs.heart_rate_zone }}{% endif %}
         {% if rs.notes %}<p style="margin:4px 0 0;">{{ rs.notes }}</p>{% endif %}
+        {% if general_fitness.run_rotation %}<div style="font-size:11px;color:#34d399;margin-top:2px;">{{ general_fitness.run_rotation.note }}</div>{% endif %}
       </div>
       {% endif %}
       {% endwith %}

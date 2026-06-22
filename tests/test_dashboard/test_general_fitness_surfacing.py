@@ -65,3 +65,16 @@ def test_dashboard_clean_for_new_user(client):
     assert gf.duration_bump_min == 0
     assert gf.run_rotation is None
     assert "4th training day" not in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_weekly_plan_shows_duration_hint(client):
+    user = _user("wp")
+    for wk, ago in [(1, 4), (2, 3), (3, 2), (5, 1)]:
+        _consistent_week(user, wk, ago)
+    _consistent_week(user, 6, weeks_ago=-1, is_active=True)
+    client.login(username="wp", password="testpass123")
+    resp = client.get(reverse("weekly_plan"))
+    gf = resp.context["general_fitness"]
+    assert gf.duration_bump_min == 10
+    assert "+10 min suggested" in resp.content.decode()

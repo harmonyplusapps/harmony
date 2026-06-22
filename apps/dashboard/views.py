@@ -6,7 +6,7 @@ from apps.health.models import HealthPlan, MealPlan, WellnessLog
 from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION, is_deload_week
 from services.coach.progression import suggest_strength_progression
 from services.coach.cardio import body_weight_trend, suggest_step_target_for, suggest_weekly_mileage_for
-from services.coach.general_fitness import get_suggestions
+from services.coach.general_fitness import get_suggestions, DURATION_BUMP_DAY_TYPES
 
 
 @login_required
@@ -140,6 +140,8 @@ def weekly_plan(request):
                     suggest_strength_progression(request.user, wd, is_deload)
                 )
 
+    general_fitness = get_suggestions(request.user, today)
+
     return render(request, "dashboard/weekly_plan.html", {
         "profile": profile,
         "fitness_plan": fitness_plan,
@@ -149,4 +151,6 @@ def weekly_plan(request):
         "is_deload": is_deload,
         "weight_suggestions": weight_suggestions,
         "weekly_mileage_km": weekly_mileage_km,
+        "general_fitness": general_fitness,
+        "duration_bump_types": DURATION_BUMP_DAY_TYPES,
     })
