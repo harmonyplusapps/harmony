@@ -13,3 +13,22 @@ def test_consistent_week_below_threshold():
 
 def test_consistent_week_zero_planned_is_false():
     assert consistent_week(planned=0, completed=0) is False
+
+
+from services.coach.general_fitness import duration_bump
+
+
+def test_duration_bump_below_two_weeks_is_zero():
+    assert duration_bump(0) == (0, False)
+    assert duration_bump(1) == (0, False)
+
+
+def test_duration_bump_accrues_every_two_consistent_weeks():
+    assert duration_bump(2) == (5, False)
+    assert duration_bump(4) == (10, False)
+    assert duration_bump(6) == (15, False)
+
+
+def test_duration_bump_caps_at_thirty():
+    assert duration_bump(12) == (30, True)
+    assert duration_bump(20) == (30, True)

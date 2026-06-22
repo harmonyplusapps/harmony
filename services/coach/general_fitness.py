@@ -17,3 +17,11 @@ def consistent_week(planned: int, completed: int,
     """A week counts as consistent when >= threshold of its planned (non-rest)
     workouts were completed. A week with nothing planned is not consistent."""
     return planned > 0 and completed / planned >= threshold
+
+
+def duration_bump(streak_weeks: int) -> tuple[int, bool]:
+    """Minutes to add per session given a consistent-week streak, and whether the
+    +30 min cap has been reached. +5 min per 2 consistent weeks."""
+    bumps = streak_weeks // BUMP_EVERY_CONSISTENT_WEEKS
+    raw = bumps * DURATION_INCREMENT_MIN
+    return min(raw, DURATION_CAP_MIN), raw >= DURATION_CAP_MIN
