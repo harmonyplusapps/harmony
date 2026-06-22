@@ -19,6 +19,16 @@ class RunRotation:
     note: str
 
 
+@dataclass(frozen=True)
+class GeneralFitnessSuggestions:
+    consistent_week_streak: int
+    duration_bump_min: int
+    duration_capped: bool
+    add_training_day: bool
+    current_training_days: int
+    run_rotation: RunRotation | None
+
+
 def consistent_week(planned: int, completed: int,
                     threshold: float = CONSISTENCY_THRESHOLD) -> bool:
     """A week counts as consistent when >= threshold of its planned (non-rest)
@@ -81,3 +91,47 @@ def consistent_week_streak(user, on_date) -> int:
         else:
             break
     return streak
+
+
+def get_suggestions(user, on_date) -> GeneralFitnessSuggestions:
+    """Assemble the advisory general-fitness bundle for `user` as of `on_date`.
+    Compute-on-read; reads only. The duration bump is suppressed on a deload week."""
+    from apps.fitness.models import FitnessPlan, RunningStrategy
+    from services.coach.engine import is_deload_week
+
+    streak = consistent_week_streak(user, on_date)
+
+    active_plan = FitnessPlan.objects.filter(user=user, is_active=True).first()
+    is_deload = is_deload_week(active_plan.week_number) if active_plan else False
+    current_days = (
+        active_plan.workout_days.exclude(day_type="rest").count()
+        if active_plan else 0
+    )
+
+    bump_min, capped = duration_bump(streak)
+    if is_deload:
+        bump_min, capped = 0, False
+
+    add_day = should_add_training_day(streak, current_days)
+
+    recent_types = list(
+        RunningStrategy.objects.filter(
+            workout_day__fitness_plan__user=user,
+            workout_day__logs__user=user,
+            workout_day__logs__completed=True,
+        ).order_by("-workout_day__date").values_list("run_type", flat=True)[:RUN_MONOTONY_WINDOW]
+    )
+    suggested, note = suggest_run_rotation(recent_types)
+    rotation = (
+        RunRotation(recent_type=recent_types[0], suggested_type=suggested, note=note)
+        if suggested else None
+    )
+
+    return GeneralFitnessSuggestions(
+        consistent_week_streak=streak,
+        duration_bump_min=bump_min,
+        duration_capped=capped,
+        add_training_day=add_day,
+        current_training_days=current_days,
+        run_rotation=rotation,
+    )
