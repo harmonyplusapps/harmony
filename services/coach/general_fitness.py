@@ -25,3 +25,9 @@ def duration_bump(streak_weeks: int) -> tuple[int, bool]:
     bumps = streak_weeks // BUMP_EVERY_CONSISTENT_WEEKS
     raw = bumps * DURATION_INCREMENT_MIN
     return min(raw, DURATION_CAP_MIN), raw >= DURATION_CAP_MIN
+
+
+def should_add_training_day(streak_weeks: int, current_days: int) -> bool:
+    """Nudge to add a training day after a 3-consistent-week streak, but only for
+    users training fewer than 4 days/week."""
+    return streak_weeks >= FOURTH_DAY_STREAK and current_days < MAX_TRAINING_DAYS

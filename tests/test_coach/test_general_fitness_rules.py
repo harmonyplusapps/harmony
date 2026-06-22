@@ -32,3 +32,18 @@ def test_duration_bump_accrues_every_two_consistent_weeks():
 def test_duration_bump_caps_at_thirty():
     assert duration_bump(12) == (30, True)
     assert duration_bump(20) == (30, True)
+
+
+from services.coach.general_fitness import should_add_training_day
+
+
+def test_add_day_fires_after_three_weeks_under_four_days():
+    assert should_add_training_day(streak_weeks=3, current_days=3) is True
+
+
+def test_add_day_not_before_three_weeks():
+    assert should_add_training_day(streak_weeks=2, current_days=3) is False
+
+
+def test_add_day_not_when_already_four_days():
+    assert should_add_training_day(streak_weeks=5, current_days=4) is False
