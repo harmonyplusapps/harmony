@@ -1,0 +1,72 @@
+import pytest
+from datetime import date, timedelta
+from decimal import Decimal
+from django.urls import reverse
+from django.contrib.auth.models import User
+from apps.accounts.models import UserProfile
+from apps.health.models import WeightLog, WellnessLog
+
+
+def _user():
+    u = User.objects.create_user(username="cw", password="testpass123", email="cw@e.com")
+    UserProfile.objects.create(
+        user=u, height_cm=170, weight_kg=65, gender="female",
+        date_of_birth=date(1992, 3, 3), fitness_experience="beginner",
+        primary_goal="Get active", diet_type="omnivore", food_allergies=[],
+        daily_routine="", wake_time="07:00", sleep_time="23:00",
+        work_schedule="9-5", workout_days_per_week=3, preferred_workout_days=[],
+        workout_location="home", available_equipment=[],
+        notification_email="cw@e.com",
+    )
+    return u
+
+
+@pytest.mark.django_db
+def test_checkin_post_saves_weight(client):
+    _user()
+    client.login(username="cw", password="testpass123")
+    client.post(reverse("health_checkin"), {"weight_kg": "64.5"})
+    log = WeightLog.objects.get(user__username="cw", date=date.today())
+    assert log.weight_kg == Decimal("64.5")
+
+
+@pytest.mark.django_db
+def test_checkin_blank_weight_creates_no_log(client):
+    _user()
+    client.login(username="cw", password="testpass123")
+    client.post(reverse("health_checkin"), {"soreness_quads": "mild"})
+    assert not WeightLog.objects.filter(user__username="cw", date=date.today()).exists()
+
+
+@pytest.mark.django_db
+def test_checkin_shows_step_target(client):
+    user = _user()
+    today = date.today()
+    WellnessLog.objects.create(
+        user=user, date=today - timedelta(days=1), sleep_hours=8, sleep_quality=4,
+        mood_score=5, stress_level=4, energy_level=6, steps=8000,
+    )
+    client.login(username="cw", password="testpass123")
+    resp = client.get(reverse("health_checkin"))
+    assert resp.context["step_target"] == 8500
+    assert "8500" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_checkin_reweigh_updates_same_day_log(client):
+    _user()
+    client.login(username="cw", password="testpass123")
+    client.post(reverse("health_checkin"), {"weight_kg": "64.5"})
+    client.post(reverse("health_checkin"), {"weight_kg": "64.0"})
+    logs = WeightLog.objects.filter(user__username="cw", date=date.today())
+    assert logs.count() == 1
+    assert logs.first().weight_kg == Decimal("64.0")
+
+
+@pytest.mark.django_db
+def test_checkin_invalid_weight_ignored(client):
+    _user()
+    client.login(username="cw", password="testpass123")
+    resp = client.post(reverse("health_checkin"), {"weight_kg": "abc"}, follow=True)
+    assert resp.status_code == 200
+    assert not WeightLog.objects.filter(user__username="cw", date=date.today()).exists()

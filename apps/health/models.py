@@ -126,6 +126,17 @@ class PeriodLog(models.Model):
         ordering = ["-start_date"]
 
 
+class WeightLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weight_logs")
+    date = models.DateField()
+    weight_kg = models.DecimalField(max_digits=5, decimal_places=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["user", "date"]
+        ordering = ["-date"]
+
+
 # Maps each soreness muscle group to the WorkoutDay.focus_area it belongs to,
 # so the decision engine can match logged soreness against a planned focus.
 MUSCLE_GROUP_TO_FOCUS = {

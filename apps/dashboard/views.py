@@ -5,6 +5,7 @@ from apps.fitness.models import FitnessPlan, WorkoutDay, WorkoutLog
 from apps.health.models import HealthPlan, MealPlan, WellnessLog
 from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION, is_deload_week
 from services.coach.progression import suggest_strength_progression
+from services.coach.cardio import body_weight_trend, suggest_step_target_for, suggest_weekly_mileage_for
 
 
 @login_required
@@ -63,6 +64,9 @@ def dashboard(request):
 
     progress_dots = [i < completed_days for i in range(max(planned_days, 1))]
 
+    weight_trend = body_weight_trend(request.user, today)
+    step_target = suggest_step_target_for(request.user, today)
+
     return render(request, "dashboard/index.html", {
         "profile": profile,
         "today": today,
@@ -79,6 +83,8 @@ def dashboard(request):
         "planned_days": planned_days,
         "progress_dots": progress_dots,
         "meal_types": MealPlan.MEAL_TYPE_CHOICES,
+        "weight_trend": weight_trend,
+        "step_target": step_target,
     })
 
 
@@ -89,13 +95,15 @@ def weekly_plan(request):
         return redirect("onboarding_step1")
 
     DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    today_name = date.today().strftime("%A")
+    today = date.today()
+    today_name = today.strftime("%A")
 
     fitness_plan = FitnessPlan.objects.filter(user=request.user, is_active=True).first()
     health_plan = HealthPlan.objects.filter(user=request.user, is_active=True).first()
 
     is_deload = False
     weight_suggestions = {}
+    weekly_mileage_km = None
 
     days = []
     if fitness_plan:
@@ -122,6 +130,7 @@ def weekly_plan(request):
         ]
 
         is_deload = is_deload_week(fitness_plan.week_number)
+        weekly_mileage_km = suggest_weekly_mileage_for(request.user, today, is_deload)
         for wd in workout_days.values():
             if wd.day_type == "strength":
                 weight_suggestions.update(
@@ -136,4 +145,5 @@ def weekly_plan(request):
         "today_name": today_name,
         "is_deload": is_deload,
         "weight_suggestions": weight_suggestions,
+        "weekly_mileage_km": weekly_mileage_km,
     })
