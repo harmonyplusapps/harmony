@@ -47,3 +47,26 @@ def test_add_day_not_before_three_weeks():
 
 def test_add_day_not_when_already_four_days():
     assert should_add_training_day(streak_weeks=5, current_days=4) is False
+
+
+from services.coach.general_fitness import suggest_run_rotation
+
+
+def test_rotation_fires_on_monotonous_window():
+    suggested, note = suggest_run_rotation(["easy", "easy", "easy"])
+    assert suggested == "interval"          # first preference not already used
+    assert "easy" in note and "interval" in note
+
+
+def test_rotation_none_when_varied():
+    assert suggest_run_rotation(["easy", "interval", "easy"]) == (None, "")
+
+
+def test_rotation_none_when_window_too_short():
+    assert suggest_run_rotation(["easy", "easy"]) == (None, "")
+
+
+def test_rotation_skips_long_run_underscore_in_copy():
+    suggested, note = suggest_run_rotation(["long_run", "long_run", "long_run"])
+    assert suggested == "easy"
+    assert "long run" in note               # underscores humanized in copy

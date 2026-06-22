@@ -12,6 +12,13 @@ DURATION_BUMP_DAY_TYPES = ("strength", "yoga")
 ROTATION_PREFERENCE = ["easy", "interval", "tempo", "long_run", "fartlek"]
 
 
+@dataclass(frozen=True)
+class RunRotation:
+    recent_type: str
+    suggested_type: str
+    note: str
+
+
 def consistent_week(planned: int, completed: int,
                     threshold: float = CONSISTENCY_THRESHOLD) -> bool:
     """A week counts as consistent when >= threshold of its planned (non-rest)
@@ -31,3 +38,21 @@ def should_add_training_day(streak_weeks: int, current_days: int) -> bool:
     """Nudge to add a training day after a 3-consistent-week streak, but only for
     users training fewer than 4 days/week."""
     return streak_weeks >= FOURTH_DAY_STREAK and current_days < MAX_TRAINING_DAYS
+
+
+def suggest_run_rotation(recent_run_types: list[str]) -> tuple[str | None, str]:
+    """Anti-monotony nudge: when the recent run window is full and all one type,
+    suggest the first preferred type not used recently. Otherwise (None, "")."""
+    if len(recent_run_types) < RUN_MONOTONY_WINDOW:
+        return None, ""
+    recent_set = set(recent_run_types)
+    if len(recent_set) != 1:
+        return None, ""
+    recent_type = recent_run_types[0]
+    suggested = next((t for t in ROTATION_PREFERENCE if t not in recent_set), None)
+    if suggested is None:
+        return None, ""
+    note = (f"Your last {len(recent_run_types)} runs were all "
+            f"{recent_type.replace('_', ' ')} — try a "
+            f"{suggested.replace('_', ' ')} run.")
+    return suggested, note
