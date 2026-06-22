@@ -6,6 +6,7 @@ from apps.health.models import HealthPlan, MealPlan, WellnessLog
 from services.coach.engine import decide_today, ACTIVE_RECOVERY_SUGGESTION, is_deload_week
 from services.coach.progression import suggest_strength_progression
 from services.coach.cardio import body_weight_trend, suggest_step_target_for, suggest_weekly_mileage_for
+from services.coach.general_fitness import get_suggestions
 
 
 @login_required
@@ -66,6 +67,7 @@ def dashboard(request):
 
     weight_trend = body_weight_trend(request.user, today)
     step_target = suggest_step_target_for(request.user, today)
+    general_fitness = get_suggestions(request.user, today)
 
     return render(request, "dashboard/index.html", {
         "profile": profile,
@@ -85,6 +87,7 @@ def dashboard(request):
         "meal_types": MealPlan.MEAL_TYPE_CHOICES,
         "weight_trend": weight_trend,
         "step_target": step_target,
+        "general_fitness": general_fitness,
     })
 
 

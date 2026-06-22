@@ -125,6 +125,21 @@
 </div>
 {% endif %}
 
+{% if general_fitness.add_training_day or general_fitness.duration_bump_min or general_fitness.run_rotation %}
+<div class="card">
+  <div class="card-title">Coach</div>
+  {% if general_fitness.add_training_day %}
+  <div class="card-sub">You've trained consistently {{ general_fitness.consistent_week_streak }} weeks — consider adding a 4th training day.</div>
+  {% endif %}
+  {% if general_fitness.duration_bump_min %}
+  <div class="card-sub">Add ~{{ general_fitness.duration_bump_min }} min to your strength &amp; yoga sessions this week.</div>
+  {% endif %}
+  {% if general_fitness.run_rotation %}
+  <div class="card-sub">{{ general_fitness.run_rotation.note }}</div>
+  {% endif %}
+</div>
+{% endif %}
+
 <div class="section-header">
   <span class="section-title">Weekly Progress</span>
   <span style="font-size:13px;font-weight:800;color:#a78bfa">{{ completed_days }} / {{ planned_days }} days</span>
