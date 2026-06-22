@@ -78,3 +78,34 @@ def test_weekly_plan_shows_duration_hint(client):
     gf = resp.context["general_fitness"]
     assert gf.duration_bump_min == 10
     assert "+10 min suggested" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_dashboard_shows_run_rotation_note(client):
+    from decimal import Decimal
+    from apps.fitness.models import RunningStrategy
+    user = _user("rot")
+    end = TODAY - timedelta(weeks=1)
+    start = end - timedelta(days=6)
+    plan = FitnessPlan.objects.create(
+        user=user, week_number=1, start_date=start, end_date=end,
+        is_active=False, total_workout_days=3,
+        weekly_goal_summary="g", claude_reasoning="r",
+    )
+    for i in range(3):
+        d = start + timedelta(days=i)
+        wd = WorkoutDay.objects.create(
+            fitness_plan=plan, date=d, day_of_week=d.strftime("%A"),
+            day_type="running", focus_area="cardio", estimated_duration_minutes=30,
+        )
+        RunningStrategy.objects.create(
+            workout_day=wd, run_type="easy", total_distance_km=Decimal("5"),
+            total_duration_minutes=30, pace_target="6:00/km",
+        )
+        WorkoutLog.objects.create(user=user, workout_day=wd, date=d, completed=True)
+    client.login(username="rot", password="testpass123")
+    resp = client.get(reverse("dashboard"))
+    gf = resp.context["general_fitness"]
+    assert gf.run_rotation is not None
+    assert gf.run_rotation.suggested_type == "interval"
+    assert "interval" in resp.content.decode()
