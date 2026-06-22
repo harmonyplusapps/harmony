@@ -56,3 +56,28 @@ def suggest_run_rotation(recent_run_types: list[str]) -> tuple[str | None, str]:
             f"{recent_type.replace('_', ' ')} — try a "
             f"{suggested.replace('_', ' ')} run.")
     return suggested, note
+
+
+def consistent_week_streak(user, on_date) -> int:
+    """Count consecutive consistent weeks among the user's fully-elapsed week-plans,
+    newest first. A week is consistent when >= CONSISTENCY_THRESHOLD of its non-rest
+    workout days have a completed WorkoutLog. The in-progress week is excluded."""
+    from apps.fitness.models import FitnessPlan, WorkoutLog
+
+    plans = FitnessPlan.objects.filter(
+        user=user, end_date__lt=on_date,
+    ).order_by("-week_number")
+
+    streak = 0
+    for plan in plans:
+        planned = plan.workout_days.exclude(day_type="rest").count()
+        completed = (
+            WorkoutLog.objects.filter(
+                user=user, workout_day__fitness_plan=plan, completed=True,
+            ).exclude(workout_day__day_type="rest").count()
+        )
+        if consistent_week(planned, completed):
+            streak += 1
+        else:
+            break
+    return streak
